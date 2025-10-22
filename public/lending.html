@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Lending - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            padding: 1.5rem 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .sidebar-logo i {
+            width: 32px;
+            height: 32px;
+        }
+
+        .sidebar-logo span {
+            font-size: 1.375rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-nav {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.875rem 0.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.125rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .sidebar-user-menu a {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-user-menu a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i data-lucide="tent" class="w-8 h-8"></i>
+            <span class="text-xl font-bold">RentMate</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/dashboard.html" class="sidebar-link">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/list_new_item.html" class="sidebar-link">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>List New Item</span>
+            </a>
+            <a href="/my_items.html" class="sidebar-link">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span>My Items</span>
+            </a>
+            <a href="/borrowing.html" class="sidebar-link">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span>Borrowing</span>
+            </a>
+            <a href="/lending.html" class="sidebar-link active">
+                <i data-lucide="truck" class="w-5 h-5"></i>
+                <span>Lending</span>
+            </a>
+            <a href="/browse_items.html" class="sidebar-link">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span>Browse Items</span>
+            </a>
+            <a href="/chat.html" class="sidebar-link">
+                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/notification.html" id="notificationsLink" class="sidebar-link">
+                <div class="relative inline-block">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="notificationBadge" class="absolute -top-1 -right-1 hidden bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"></span>
+                </div>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="sidebarUserName" class="font-semibold text-sm">User</div>
+                    <div class="text-xs text-white/70" id="userRole">Member</div>
+                </div>
+            </div>
+            <div class="sidebar-user-menu">
+                <a href="/profile.html">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Profile
+                </a>
+                <a href="#" onclick="handleLogout()">
+                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container mx-auto px-6 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">My Lending</h1>
+            <p class="text-gray-600 mt-2">Manage rental requests for your items</p>
+        </div>
+
+        <div id="lendingList" class="space-y-4">
+            <!-- Lending rentals will be loaded here -->
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script src="/dashboard.js"></script>
+    <script>
+        // Check authentication
+        if (!currentUser) {
+            window.location.href = '/login.html';
+        }
+
+        // Check if user is verified lender
+        const isVerified = currentUser && (currentUser.is_verified === 1 || currentUser.verification_status === 'verified');
+        if (currentUser && !isVerified) {
+            ui.showNotification('You must be a verified lender to access Lending page. Redirecting...', 'error');
+            setTimeout(() => {
+                window.location.href = '/verification.html';
+            }, 2000);
+        }
+
+        // Update sidebar user info
+        if (currentUser) {
+            document.getElementById('sidebarUserName').textContent = currentUser.name || 'User';
+            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Admin' : 'Member';
+            document.getElementById('userAvatar').textContent = (currentUser.name || 'U').charAt(0).toUpperCase();
+        }
+
+        // Load lending data
+        async function loadLending() {
+            try {
+                const response = await api.getMyLending();
+                console.log('Lending API Response:', response);
+                console.log('Lending Data:', response.data);
+                const rentals = response.data || [];
+                console.log('Rentals to display:', rentals.length);
+                displayLending(rentals);
+            } catch (error) {
+                console.error('Error loading lending:', error);
+                Swal.fire('Error', 'Failed to load lending history', 'error');
+            }
+        }
+
+        async function displayLending(rentals) {
+            const lendingList = document.getElementById('lendingList');
+            
+            if (!rentals || rentals.length === 0) {
+                lendingList.innerHTML = `
+                    <div class="bg-white p-8 rounded-lg shadow text-center">
+                        <i data-lucide="hand-coins" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+                        <p class="text-gray-600">No rental requests for your items yet.</p>
+                        <a href="/list_new_item.html" class="btn-primary mt-4 inline-block">
+                            List an Item
+                        </a>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            // Status configuration
+            const statusConfig = {
+                'payment_pending': { color: 'border-yellow-500', badge: 'bg-yellow-100 text-yellow-800', text: 'AWAITING PAYMENT' },
+                'payment_made': { color: 'border-blue-500', badge: 'bg-blue-100 text-blue-800', text: 'PAYMENT MADE' },
+                'approved': { color: 'border-green-500', badge: 'bg-green-100 text-green-800', text: 'APPROVED' },
+                'active': { color: 'border-teal-500', badge: 'bg-teal-100 text-teal-800', text: 'ACTIVE' },
+                'item_transferred': { color: 'border-purple-500', badge: 'bg-purple-100 text-purple-800', text: 'TRANSFERRED' },
+                'item_returned': { color: 'border-indigo-500', badge: 'bg-indigo-100 text-indigo-800', text: 'RETURNED' },
+                'completed': { color: 'border-blue-500', badge: 'bg-blue-100 text-blue-800', text: 'COMPLETED' },
+                'cancelled': { color: 'border-gray-500', badge: 'bg-gray-100 text-gray-800', text: 'CANCELLED' },
+                'rejected': { color: 'border-red-500', badge: 'bg-red-100 text-red-800', text: 'REJECTED' }
+            };
+
+            lendingList.innerHTML = '';
+            
+            for (const rental of rentals) {
+                const workflowStatus = rental.workflow_status || 'unknown';
+                const config = statusConfig[workflowStatus] || { color: 'border-gray-500', badge: 'bg-gray-100 text-gray-800', text: 'UNKNOWN' };
+                
+                // Check if already reviewed for completed rentals
+                let hasReviewed = false;
+                if (workflowStatus === 'completed') {
+                    try {
+                        const reviewCheck = await api.request(`/reviews/can-review/${rental.id}`);
+                        hasReviewed = reviewCheck.hasReviewed || false;
+                    } catch (error) {
+                        console.error('Error checking review status:', error);
+                    }
+                }
+                
+                const rentalHTML = `
+                <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow border-l-4 ${config.color}">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <!-- Your Item -->
+                            <div class="mb-3">
+                                <span class="text-xs text-gray-400 uppercase tracking-wide font-semibold">Your Item</span>
+                                <h3 class="text-lg font-bold text-gray-900">${rental.itemName || 'Item'}</h3>
+                            </div>
+                            
+                            <!-- Borrower Info -->
+                            <div class="bg-gray-50 p-3 rounded-lg mb-3">
+                                <span class="text-xs text-gray-400 uppercase tracking-wide font-semibold mb-2 block">Borrower Details</span>
+                                <p class="text-sm text-gray-700 font-medium">
+                                    <i data-lucide="user" class="w-4 h-4 inline mr-1 text-primary"></i>
+                                    ${rental.borrowerName || 'Unknown'}
+                                </p>
+                                ${rental.borrowerEmail ? `
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        <i data-lucide="mail" class="w-3 h-3 inline mr-1"></i>
+                                        ${rental.borrowerEmail}
+                                    </p>
+                                ` : ''}
+                                ${rental.borrowerPhone ? `
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        <i data-lucide="phone" class="w-3 h-3 inline mr-1"></i>
+                                        ${rental.borrowerPhone}
+                                    </p>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Rental Details -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <p class="text-xs text-gray-500 mb-1">
+                                        <i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i>
+                                        Rental Period
+                                    </p>
+                                    <p class="text-sm font-semibold text-gray-800">
+                                        ${new Date(rental.start_date || rental.startDate).toLocaleDateString()} - 
+                                        ${new Date(rental.end_date || rental.endDate).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500 mb-1">
+                                        <i data-lucide="dollar-sign" class="w-3 h-3 inline mr-1"></i>
+                                        Total Amount
+                                    </p>
+                                    <p class="text-xl font-bold text-primary">
+                                        ฿${parseFloat(rental.total_price || rental.totalPrice || 0).toFixed(2)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Status Badge -->
+                        <div class="ml-4">
+                            <span class="inline-block px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide ${config.badge}">
+                                ${config.text}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    ${workflowStatus === 'approved' || workflowStatus === 'active' || workflowStatus === 'item_transferred' ? `
+                    <div class="pt-4 border-t-2 border-gray-100">
+                        <button onclick="confirmItemReturn(${rental.id})" 
+                                class="w-full bg-teal-600 text-white px-5 py-3 rounded-lg hover:bg-teal-700 transition-colors font-bold uppercase tracking-wide text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            Confirm Item Returned
+                        </button>
+                    </div>
+                    ` : workflowStatus === 'item_returned' ? `
+                    <div class="pt-4 border-t-2 border-gray-100">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                            <p class="text-sm text-green-800 font-semibold">
+                                <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i>
+                                Item return confirmed! Waiting for deposit refund processing.
+                            </p>
+                        </div>
+                    </div>
+                    ` : workflowStatus === 'completed' ? `
+                    <div class="pt-4 border-t-2 border-gray-100 space-y-2">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                            <p class="text-sm text-blue-800 font-semibold">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 inline mr-1"></i>
+                                Rental completed successfully! Deposit has been refunded.
+                            </p>
+                        </div>
+                        ${hasReviewed ? `
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                            <p class="text-sm text-green-800 font-semibold">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 inline mr-1"></i>
+                                Review Completed ✓
+                            </p>
+                        </div>
+                        ` : `
+                        <button onclick="openReviewModal(${rental.id}, ${rental.borrower_id}, '${rental.borrowerName}', '${rental.itemName}')" 
+                            class="w-full bg-amber-600 text-white px-5 py-3 rounded-lg hover:bg-amber-700 transition-colors font-bold uppercase tracking-wide text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="star" class="w-5 h-5"></i>
+                            Review Borrower
+                        </button>
+                        `}
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+                
+                lendingList.innerHTML += rentalHTML;
+            }
+            
+            lucide.createIcons();
+        }
+
+        async function handleRentalAction(rentalId, action) {
+            try {
+                const result = await Swal.fire({
+                    title: `${action === 'approve' ? 'Approve' : 'Reject'} Rental?`,
+                    text: `Are you sure you want to ${action} this rental request?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: action === 'approve' ? '#10b981' : '#ef4444',
+                    confirmButtonText: `Yes, ${action}`,
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (result.isConfirmed) {
+                    await api.updateRentalStatus(rentalId, action === 'approve' ? 'approved' : 'rejected');
+                    Swal.fire('Success!', `Rental ${action}d successfully`, 'success');
+                    loadLending(); // Reload the list
+                }
+            } catch (error) {
+                console.error('Error updating rental:', error);
+                Swal.fire('Error', 'Failed to update rental', 'error');
+            }
+        }
+
+        // Confirm item return
+        async function confirmItemReturn(rentalId) {
+            const result = await Swal.fire({
+                title: 'Confirm Item Return?',
+                html: `
+                    <p class="text-gray-700 mb-4">Has the borrower returned the item in good condition?</p>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-left">
+                        <p class="text-sm text-yellow-800">
+                            <i data-lucide="alert-circle" class="w-4 h-4 inline mr-1"></i>
+                            <strong>Important:</strong> Only confirm if you have physically received the item back.
+                        </p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d9488',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Item Returned',
+                cancelButtonText: 'Not Yet'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await api.request('/rentals/confirm-return', {
+                        method: 'POST',
+                        body: JSON.stringify({ rental_id: rentalId })
+                    });
+
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Item return confirmed. The deposit will be refunded to the borrower.',
+                            icon: 'success',
+                            confirmButtonColor: '#0d9488'
+                        });
+                        loadLending(); // Reload the list
+                    }
+                } catch (error) {
+                    console.error('Error confirming return:', error);
+                    Swal.fire('Error', 'Failed to confirm item return', 'error');
+                }
+            }
+        }
+
+        // Open review modal
+        async function openReviewModal(rentalId, revieweeId, revieweeName, itemName) {
+            // Check if already reviewed
+            try {
+                const checkResponse = await api.request(`/reviews/can-review/${rentalId}`);
+                
+                if (checkResponse.hasReviewed) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Already Reviewed',
+                        text: 'You have already submitted a review for this rental.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking review status:', error);
+            }
+
+            const { value: formValues } = await Swal.fire({
+                title: `Review ${revieweeName}`,
+                html: `
+                    <div class="text-left space-y-4">
+                        <div class="bg-gray-50 p-3 rounded-lg mb-4">
+                            <p class="text-sm text-gray-600">Rental Item: <strong>${itemName}</strong></p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
+                            <div class="flex justify-center gap-2 py-2" id="starRating">
+                                ${[1, 2, 3, 4, 5].map(star => `
+                                    <button type="button" onclick="setRating(${star})" 
+                                        class="star-btn text-3xl text-gray-300 hover:text-amber-400 transition-colors" 
+                                        data-star="${star}">★</button>
+                                `).join('')}
+                            </div>
+                            <input type="hidden" id="ratingValue" value="0">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Your Review</label>
+                            <textarea id="reviewComment" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" 
+                                rows="4" 
+                                placeholder="Share your experience..."></textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Submit Review',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#0d9488',
+                cancelButtonColor: '#6b7280',
+                width: '600px',
+                preConfirm: () => {
+                    const rating = document.getElementById('ratingValue').value;
+                    const comment = document.getElementById('reviewComment').value;
+                    
+                    if (!rating || rating == 0) {
+                        Swal.showValidationMessage('Please select a rating');
+                        return false;
+                    }
+                    
+                    if (!comment.trim()) {
+                        Swal.showValidationMessage('Please write a review');
+                        return false;
+                    }
+                    
+                    return { rating: parseInt(rating), comment: comment.trim() };
+                },
+                didOpen: () => {
+                    // Initialize star rating
+                    window.setRating = function(star) {
+                        document.getElementById('ratingValue').value = star;
+                        const stars = document.querySelectorAll('.star-btn');
+                        stars.forEach((btn, index) => {
+                            if (index < star) {
+                                btn.classList.remove('text-gray-300');
+                                btn.classList.add('text-amber-400');
+                            } else {
+                                btn.classList.remove('text-amber-400');
+                                btn.classList.add('text-gray-300');
+                            }
+                        });
+                    };
+                }
+            });
+
+            if (formValues) {
+                try {
+                    const response = await api.request('/reviews', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            rental_id: rentalId,
+                            reviewee_id: revieweeId,
+                            rating: formValues.rating,
+                            comment: formValues.comment
+                        })
+                    });
+
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Review Submitted!',
+                            text: 'Thank you for your feedback.',
+                            confirmButtonColor: '#0d9488'
+                        });
+                        loadLending(); // Reload to update UI
+                    }
+                } catch (error) {
+                    console.error('Error submitting review:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Failed to submit review. Please try again.',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            }
+        }
+
+        // Load and display notifications badge
+        async function loadNotifications() {
+            try {
+                const response = await api.request('/notifications/unread/count');
+                const count = response.count || 0;
+                
+                const badge = document.getElementById('notificationBadge');
+                if (count > 0) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        async function showNotificationsModal() {
+            try {
+                const response = await api.request('/notifications');
+                const notifications = response.data || response || [];
+
+                if (notifications.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Notifications',
+                        text: 'You have no notifications at this time.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return;
+                }
+
+                const notificationList = notifications.map(notification => `
+                    <div class="border-b border-gray-200 pb-3 mb-3 text-left ${notification.is_read ? 'opacity-60' : ''}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900">${notification.title}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                                <p class="text-xs text-gray-400 mt-1">${new Date(notification.created_at).toLocaleDateString()}</p>
+                            </div>
+                            ${!notification.is_read ? '<span class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-1"></span>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                Swal.fire({
+                    title: 'Notifications',
+                    html: `
+                        <div class="max-h-96 overflow-y-auto">
+                            ${notificationList}
+                        </div>
+                    `,
+                    width: '600px',
+                    confirmButtonText: 'Close',
+                    confirmButtonColor: '#0d9488',
+                    didOpen: () => {
+                        // Mark all as read
+                        api.request('/notifications/mark-read', { method: 'PUT' }).then(() => {
+                            loadNotifications();
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error showing notifications:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load notifications',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await loadLending();
+            await loadNotifications();
+
+            // Refresh notifications every 30 seconds
+            setInterval(loadNotifications, 30000);
+        });
+    </script>
+</body>
+</html>

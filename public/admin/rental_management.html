@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Management - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+
+        /* Admin Navigation Tabs */
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .admin-tab {
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .admin-tab:hover {
+            background-color: #f0fdfa;
+        }
+
+        .admin-tab.active {
+            background-color: #0d9488;
+            color: white;
+        }
+
+        /* Responsive Navigation */
+        @media (max-width: 768px) {
+            .admin-tabs {
+                flex-direction: column;
+            }
+            
+            .admin-tab {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .top-nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-7 h-7 text-yellow-500"></i>
+                    <span class="text-xl font-bold text-gray-800">RentMate Admin</span>
+                </div>
+                <div class="flex items-center space-x-6 top-nav-links">
+                    <a href="/index.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="home" class="w-4 h-4 inline mr-1"></i>
+                        Home
+                    </a>
+                    <a href="/dashboard.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-1"></i>
+                        Dashboard
+                    </a>
+                    <button onclick="handleLogout()" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i>
+                        Logout
+                    </button>
+                </div>
+                <button class="mobile-menu-btn text-gray-700" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Admin Tabs -->
+        <div class="bg-white rounded-lg shadow mb-8 p-4">
+            <div class="admin-tabs">
+                <button onclick="window.location.href='/admin.html'" class="admin-tab">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Users</span>
+                </button>
+                <button onclick="window.location.href='/admin/items.html'" class="admin-tab">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>Items</span>
+                </button>
+                <button onclick="window.location.href='/admin/rentals.html'" class="admin-tab">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    <span>Rentals</span>
+                </button>
+                <button onclick="window.location.href='/admin/rental_management.html'" class="admin-tab active">
+                    <i data-lucide="workflow" class="w-4 h-4"></i>
+                    <span>Rental Workflow</span>
+                </button>
+                <button onclick="window.location.href='/admin/verification.html'" class="admin-tab">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Verifications</span>
+                </button>
+                <button onclick="window.location.href='/admin/item_approval.html'" class="admin-tab">
+                    <i data-lucide="package-check" class="w-4 h-4"></i>
+                    <span>Item Approvals</span>
+                </button>
+                <button onclick="window.location.href='/admin.html'" class="admin-tab">
+                    <i data-lucide="bar-chart" class="w-4 h-4"></i>
+                    <span>Statistics</span>
+                </button>
+            </div>
+        </div>
+
+    <div class="min-h-screen">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Rental Workflow Management</h1>
+                <p class="text-gray-600">Approve payments, track progress, and manage rentals</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="border-b">
+                    <nav class="flex -mb-px">
+                        <button onclick="switchTab('pending')" class="tab-btn px-6 py-4 font-medium text-primary-600 border-b-2 border-primary-600" data-tab="pending">
+                            Pending Payment Approval
+                            <span class="ml-2 bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs" id="pendingCount">0</span>
+                        </button>
+                        <button onclick="switchTab('active')" class="tab-btn px-6 py-4 font-medium text-gray-600 hover:text-gray-900" data-tab="active">
+                            Active Rentals
+                            <span class="ml-2 bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs" id="activeCount">0</span>
+                        </button>
+                        <button onclick="switchTab('return')" class="tab-btn px-6 py-4 font-medium text-gray-600 hover:text-gray-900" data-tab="return">
+                            Pending Return Confirmation
+                            <span class="ml-2 bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs" id="returnCount">0</span>
+                        </button>
+                        <button onclick="switchTab('completed')" class="tab-btn px-6 py-4 font-medium text-gray-600 hover:text-gray-900" data-tab="completed">
+                            Completed
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Pending Payment Approval -->
+            <div id="pendingTab" class="tab-content">
+                <div id="pendingRentals" class="space-y-4">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Active Rentals -->
+            <div id="activeTab" class="tab-content hidden">
+                <div id="activeRentals" class="space-y-4">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Pending Return -->
+            <div id="returnTab" class="tab-content hidden">
+                <div id="returnRentals" class="space-y-4">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Completed -->
+            <div id="completedTab" class="tab-content hidden">
+                <div id="completedRentals" class="space-y-4">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        let allRentals = [];
+
+        async function loadRentals() {
+            try {
+                const response = await api.getAllRentals();
+                if (response.success) {
+                    allRentals = response.data;
+                    displayRentals();
+                }
+            } catch (error) {
+                console.error('Error loading rentals:', error);
+                Swal.fire('Error', 'Failed to load rentals', 'error');
+            }
+        }
+
+        function displayRentals() {
+            const pending = allRentals.filter(r => r.workflow_status === 'payment_made');
+            const active = allRentals.filter(r => r.workflow_status === 'approved' || r.workflow_status === 'active');
+            const returnPending = allRentals.filter(r => r.return_confirmed_by_lender === 1 && r.workflow_status !== 'completed');
+            const completed = allRentals.filter(r => r.workflow_status === 'completed');
+
+            document.getElementById('pendingCount').textContent = pending.length;
+            document.getElementById('activeCount').textContent = active.length;
+            document.getElementById('returnCount').textContent = returnPending.length;
+
+            displayPendingRentals(pending);
+            displayActiveRentals(active);
+            displayReturnRentals(returnPending);
+            displayCompletedRentals(completed);
+        }
+
+        function displayPendingRentals(rentals) {
+            const container = document.getElementById('pendingRentals');
+            
+            if (rentals.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-gray-500">No pending payment approvals</div>';
+                return;
+            }
+
+            container.innerHTML = rentals.map(rental => `
+                <div class="bg-white rounded-xl shadow p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg text-gray-900">${rental.itemName}</h3>
+                            <div class="text-sm text-gray-600 mt-2 space-y-1">
+                                <p><strong>Borrower:</strong> ${rental.borrowerName} (${rental.borrowerEmail})</p>
+                                <p><strong>Lender:</strong> ${rental.lenderName} (${rental.lenderEmail})</p>
+                                <p><strong>Dates:</strong> ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
+                                <p><strong>Amount:</strong> ฿${parseFloat(rental.total_price || 0).toFixed(2)}</p>
+                                <p><strong>Payment Date:</strong> ${rental.payment_date ? new Date(rental.payment_date).toLocaleString() : 'N/A'}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="viewProgress(${rental.id})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                                View Progress
+                            </button>
+                            <button onclick="approvePayment(${rental.id})" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                <i data-lucide="check" class="w-4 h-4 inline mr-1"></i>
+                                Approve Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        function displayActiveRentals(rentals) {
+            const container = document.getElementById('activeRentals');
+            
+            if (rentals.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-gray-500">No active rentals</div>';
+                return;
+            }
+
+            container.innerHTML = rentals.map(rental => `
+                <div class="bg-white rounded-xl shadow p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg text-gray-900">${rental.itemName}</h3>
+                            <div class="text-sm text-gray-600 mt-2 space-y-1">
+                                <p><strong>Borrower:</strong> ${rental.borrowerName}</p>
+                                <p><strong>Lender:</strong> ${rental.lenderName}</p>
+                                <p><strong>Dates:</strong> ${new Date(rental.start_date).toLocaleDateString()} - ${new Date(rental.end_date).toLocaleDateString()}</p>
+                                <p><strong>Status:</strong> <span class="text-green-600 font-semibold">Active</span></p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="viewProgress(${rental.id})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                                Track Progress
+                            </button>
+                            ${rental.workflow_status === 'approved' && !rental.lender_paid_at ? `
+                                <button onclick="transferToLender(${rental.id})" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                                    <i data-lucide="send" class="w-4 h-4 inline mr-1"></i>
+                                    Transfer to Lender
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        function displayReturnRentals(rentals) {
+            const container = document.getElementById('returnRentals');
+            
+            if (rentals.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-gray-500">No pending deposit refunds</div>';
+                return;
+            }
+
+            container.innerHTML = rentals.map(rental => `
+                <div class="bg-white rounded-xl shadow p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg text-gray-900">${rental.itemName}</h3>
+                            <div class="text-sm text-gray-600 mt-2 space-y-1">
+                                <p><strong>Borrower:</strong> ${rental.borrowerName}</p>
+                                <p><strong>Lender:</strong> ${rental.lenderName}</p>
+                                <p><strong>Deposit Amount:</strong> ฿${(parseFloat(rental.total_price || 0) * 0.2).toFixed(2)}</p>
+                                <p><strong>Return Confirmed:</strong> ${rental.item_returned_at ? new Date(rental.item_returned_at).toLocaleString() : 'N/A'}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="viewProgress(${rental.id})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                                View Details
+                            </button>
+                            <button onclick="refundDeposit(${rental.id})" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                <i data-lucide="refund" class="w-4 h-4 inline mr-1"></i>
+                                Refund Deposit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        function displayCompletedRentals(rentals) {
+            const container = document.getElementById('completedRentals');
+            
+            if (rentals.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-gray-500">No completed rentals</div>';
+                return;
+            }
+
+            container.innerHTML = rentals.map(rental => `
+                <div class="bg-white rounded-xl shadow p-6">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg text-gray-900">${rental.itemName}</h3>
+                            <div class="text-sm text-gray-600 mt-2 space-y-1">
+                                <p><strong>Borrower:</strong> ${rental.borrowerName}</p>
+                                <p><strong>Lender:</strong> ${rental.lenderName}</p>
+                                <p><strong>Completed:</strong> ${rental.deposit_refunded_at ? new Date(rental.deposit_refunded_at).toLocaleDateString() : 'N/A'}</p>
+                            </div>
+                        </div>
+                        <button onclick="viewProgress(${rental.id})" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i data-lucide="history" class="w-4 h-4 inline mr-1"></i>
+                            View History
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        function switchTab(tabName) {
+            // Update button styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-primary-600', 'border-b-2', 'border-primary-600');
+                btn.classList.add('text-gray-600');
+            });
+            
+            const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+            activeBtn.classList.remove('text-gray-600');
+            activeBtn.classList.add('text-primary-600', 'border-b-2', 'border-primary-600');
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+        }
+
+        async function approvePayment(rentalId) {
+            const result = await Swal.fire({
+                title: 'Approve Payment?',
+                text: 'This will approve the payment and enable chat between borrower and lender',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Approve',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#10b981'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await api.request('/payments/approve', {
+                        method: 'POST',
+                        body: JSON.stringify({ rental_id: rentalId })
+                    });
+
+                    if (response.success) {
+                        Swal.fire('Approved!', 'Payment approved successfully', 'success');
+                        loadRentals();
+                    }
+                } catch (error) {
+                    Swal.fire('Error', error.message || 'Failed to approve payment', 'error');
+                }
+            }
+        }
+
+        async function transferToLender(rentalId) {
+            const result = await Swal.fire({
+                title: 'Transfer Payment to Lender?',
+                text: 'This will transfer the rental payment to the lender',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Transfer',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#8b5cf6'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await api.request('/payments/transfer', {
+                        method: 'POST',
+                        body: JSON.stringify({ rental_id: rentalId })
+                    });
+
+                    if (response.success) {
+                        Swal.fire('Transferred!', 'Payment transferred to lender successfully', 'success');
+                        loadRentals();
+                    }
+                } catch (error) {
+                    Swal.fire('Error', error.message || 'Failed to transfer payment', 'error');
+                }
+            }
+        }
+
+        async function refundDeposit(rentalId) {
+            const result = await Swal.fire({
+                title: 'Refund Deposit?',
+                text: 'This will refund the security deposit to the borrower and complete the rental',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Refund',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#10b981'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await api.request('/payments/refund', {
+                        method: 'POST',
+                        body: JSON.stringify({ rental_id: rentalId })
+                    });
+
+                    if (response.success) {
+                        Swal.fire('Refunded!', 'Deposit refunded successfully', 'success');
+                        loadRentals();
+                    }
+                } catch (error) {
+                    Swal.fire('Error', error.message || 'Failed to refund deposit', 'error');
+                }
+            }
+        }
+
+        async function viewProgress(rentalId) {
+            window.location.href = `/rental_progress.html?rentalId=${rentalId}`;
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+
+        function toggleMobileMenu() {
+            const navLinks = document.querySelector('.top-nav-links');
+            if (navLinks) {
+                navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '100%';
+                navLinks.style.right = '0';
+                navLinks.style.backgroundColor = 'white';
+                navLinks.style.padding = '1rem';
+                navLinks.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                navLinks.style.borderRadius = '0.5rem';
+                navLinks.style.marginTop = '0.5rem';
+            }
+        }
+
+        // Initialize
+        lucide.createIcons();
+        loadRentals();
+    </script>
+</body>
+</html>

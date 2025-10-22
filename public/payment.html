@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Complete Payment</h1>
+                <p class="text-gray-600 mt-2">Rental + Deposit</p>
+            </div>
+
+            <!-- Payment Card -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+                <div class="flex items-center justify-between mb-6 pb-6 border-b">
+                    <h2 class="text-xl font-bold text-gray-900">Payment Summary</h2>
+                    <div class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
+                        <i data-lucide="shield-check" class="w-4 h-4 inline mr-1"></i>
+                        Secure Payment
+                    </div>
+                </div>
+
+                <!-- Rental Details -->
+                <div id="rentalDetails" class="space-y-4 mb-6">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+
+                <!-- Payment Breakdown -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-gray-900 mb-4">Payment Breakdown</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Rental Fee</span>
+                            <span class="font-semibold" id="rentalFee">฿0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Security Deposit (Refundable)</span>
+                            <span class="font-semibold" id="depositFee">฿0.00</span>
+                        </div>
+                        <div class="border-t pt-3 flex justify-between text-lg">
+                            <span class="font-bold text-gray-900">Total Payment</span>
+                            <span class="font-bold text-teal-600" id="totalAmount">฿0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Payment Method</label>
+                    <div class="grid grid-cols-3 gap-4">
+                        <button onclick="selectPaymentMethod('card')" class="payment-method-btn border-2 border-gray-300 rounded-xl p-4 hover:border-primary-500 transition" data-method="card">
+                            <i data-lucide="credit-card" class="w-8 h-8 mx-auto mb-2 text-gray-600"></i>
+                            <div class="text-sm font-medium">Card</div>
+                        </button>
+                        <button onclick="selectPaymentMethod('gcash')" class="payment-method-btn border-2 border-gray-300 rounded-xl p-4 hover:border-primary-500 transition" data-method="gcash">
+                            <i data-lucide="smartphone" class="w-8 h-8 mx-auto mb-2 text-gray-600"></i>
+                            <div class="text-sm font-medium">GCash</div>
+                        </button>
+                        <button onclick="selectPaymentMethod('bank')" class="payment-method-btn border-2 border-gray-300 rounded-xl p-4 hover:border-primary-500 transition" data-method="bank">
+                            <i data-lucide="building-2" class="w-8 h-8 mx-auto mb-2 text-gray-600"></i>
+                            <div class="text-sm font-medium">Bank</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Form -->
+                <div id="cardPaymentForm" class="hidden mb-6 space-y-4">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                        <p class="text-sm text-yellow-800">
+                            <i data-lucide="alert-circle" class="w-4 h-4 inline mr-1"></i>
+                            <strong>Demo Mode:</strong> Enter any card number for testing purposes
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Card Number (Demo)</label>
+                        <input type="text" id="cardNumber" placeholder="Enter any 16-digit number" maxlength="19" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Expiry Date (Demo)</label>
+                            <input type="text" id="expiryDate" placeholder="MM/YY" maxlength="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">CVV (Demo)</label>
+                            <input type="text" id="cvv" placeholder="Any 3 digits" maxlength="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Notice -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-start">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5 mr-3"></i>
+                        <div class="text-sm text-blue-900">
+                            <p class="font-semibold mb-1">Payment will be held securely</p>
+                            <p class="text-blue-700">Payment requires admin approval. The deposit will be refunded after you return the item and the lender confirms receipt.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-4">
+                    <button onclick="window.history.back()" class="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button onclick="processPayment()" id="payButton" disabled class="flex-1 px-6 py-4 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed">
+                        <i data-lucide="lock" class="w-5 h-5 inline mr-2"></i>
+                        Pay Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- What Happens Next -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <h3 class="font-bold text-gray-900 mb-4">
+                    <i data-lucide="help-circle" class="w-5 h-5 inline mr-2"></i>
+                    What happens after payment?
+                </h3>
+                <ol class="space-y-3 text-sm text-gray-700">
+                    <li class="flex items-start">
+                        <span class="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">1</span>
+                        <span>Admin will review and approve your payment</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">2</span>
+                        <span>Payment will be transferred to the lender</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">3</span>
+                        <span>You can chat with the lender to arrange pickup</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">4</span>
+                        <span>After returning the item, lender confirms and deposit is refunded</span>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        let rentalId = null;
+        let rentalData = null;
+        let selectedPaymentMethod = null;
+
+        // Get rental ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        rentalId = urlParams.get('rentalId');
+
+        if (!rentalId) {
+            Swal.fire('Error', 'No rental ID provided', 'error').then(() => {
+                window.location.href = '/browse_items.html';
+            });
+        }
+
+        // Load rental details
+        async function loadRentalDetails() {
+            try {
+                const response = await api.request(`/rentals/progress/${rentalId}`);
+                if (!response.success) {
+                    throw new Error('Failed to load rental details');
+                }
+
+                rentalData = response.data.rental;
+                displayRentalDetails();
+
+            } catch (error) {
+                console.error('Error loading rental:', error);
+                Swal.fire('Error', 'Failed to load rental details', 'error');
+            }
+        }
+
+        function displayRentalDetails() {
+            // Convert to number and handle null/undefined
+            const rentalPrice = parseFloat(rentalData.total_price) || 0;
+            const depositAmount = rentalPrice * 0.2; // 20% deposit
+            const totalAmount = rentalPrice + depositAmount;
+
+            // Parse images if they exist
+            let imageUrl = '';
+            try {
+                const images = rentalData.images ? JSON.parse(rentalData.images) : [];
+                imageUrl = images.length > 0 ? images[0] : '';
+            } catch (e) {
+                console.error('Error parsing images:', e);
+            }
+
+            document.getElementById('rentalDetails').innerHTML = `
+                <div class="flex items-center gap-4 pb-4 border-b">
+                    <div class="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
+                        ${imageUrl ? `<img src="${imageUrl}" class="w-full h-full object-cover" alt="Item">` : '<div class="w-full h-full flex items-center justify-center text-gray-400"><i data-lucide="image" class="w-10 h-10"></i></div>'}
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900">${rentalData.itemName || 'Item'}</h4>
+                        <p class="text-sm text-gray-600">
+                            ${new Date(rentalData.start_date).toLocaleDateString()} - ${new Date(rentalData.end_date).toLocaleDateString()}
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('rentalFee').textContent = `฿${rentalPrice.toFixed(2)}`;
+            document.getElementById('depositFee').textContent = `฿${depositAmount.toFixed(2)}`;
+            document.getElementById('totalAmount').textContent = `฿${totalAmount.toFixed(2)}`;
+            
+            // Recreate icons
+            lucide.createIcons();
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            
+            // Update button styles
+            document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                btn.classList.remove('border-primary-500', 'bg-primary-50');
+                btn.classList.add('border-gray-300');
+            });
+            
+            const selectedBtn = document.querySelector(`[data-method="${method}"]`);
+            selectedBtn.classList.remove('border-gray-300');
+            selectedBtn.classList.add('border-primary-500', 'bg-primary-50');
+
+            // Show/hide card form
+            if (method === 'card') {
+                document.getElementById('cardPaymentForm').classList.remove('hidden');
+            } else {
+                document.getElementById('cardPaymentForm').classList.add('hidden');
+            }
+
+            // Enable pay button
+            document.getElementById('payButton').disabled = false;
+        }
+
+        // Format card number with spaces
+        document.getElementById('cardNumber')?.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\s/g, '');
+            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+            e.target.value = formattedValue;
+        });
+
+        // Format expiry date
+        document.getElementById('expiryDate')?.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2, 4);
+            }
+            e.target.value = value;
+        });
+
+        async function processPayment() {
+            if (!selectedPaymentMethod) {
+                Swal.fire('Error', 'Please select a payment method', 'warning');
+                return;
+            }
+
+            // Simple validation for demo card payment
+            if (selectedPaymentMethod === 'card') {
+                const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                const expiryDate = document.getElementById('expiryDate').value;
+                const cvv = document.getElementById('cvv').value;
+
+                // Simplified validation for demo
+                if (!cardNumber || cardNumber.length < 10) {
+                    Swal.fire('Error', 'Please enter card number (any 10+ digits for demo)', 'warning');
+                    return;
+                }
+                if (!expiryDate || expiryDate.length < 4) {
+                    Swal.fire('Error', 'Please enter expiry date (MM/YY format)', 'warning');
+                    return;
+                }
+                if (!cvv || cvv.length < 3) {
+                    Swal.fire('Error', 'Please enter CVV (any 3 digits for demo)', 'warning');
+                    return;
+                }
+            }
+
+            try {
+                const rentalPrice = parseFloat(rentalData.total_price) || 0;
+                const depositAmount = rentalPrice * 0.2;
+                const totalAmount = rentalPrice + depositAmount;
+
+                // Show processing
+                Swal.fire({
+                    title: 'Processing Payment...',
+                    html: 'Please wait while we process your payment',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Create payment
+                const response = await api.request('/payments/create', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        rental_id: rentalId,
+                        payment_type: 'rental',
+                        amount: totalAmount,
+                        payment_method: selectedPaymentMethod
+                    })
+                });
+
+                if (response.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Payment Successful!',
+                        html: `
+                            <div class="text-left space-y-2">
+                                <p>Your payment of <strong>₱${totalAmount.toFixed(2)}</strong> has been processed.</p>
+                                <p class="text-sm text-gray-600">Your rental is now pending admin approval. You'll be notified once approved.</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'View My Rentals'
+                    });
+
+                    window.location.href = '/borrowing.html';
+                } else {
+                    throw new Error(response.message || 'Payment failed');
+                }
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                Swal.fire('Error', error.message || 'Payment failed. Please try again.', 'error');
+            }
+        }
+
+        // Initialize
+        lucide.createIcons();
+        loadRentalDetails();
+    </script>
+</body>
+</html>

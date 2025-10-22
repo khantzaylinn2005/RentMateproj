@@ -1,0 +1,22 @@
+{
+  "name": "rentmate",
+  "version": "1.0.0",
+  "description": "RentMate - Rent and Lend your items easily",
+  "main": "server.js",
+  "scripts": {
+    "start": "cd backend && node server.js",
+    "dev": "cd backend && nodemon server.js",
+    "setup": "cd backend && npm run setup",
+    "build:css": "tailwindcss -i ./src/input.css -o ./public/styles.css --watch"
+  },
+  "keywords": ["rental", "marketplace"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.3.0",
+    "nodemon": "^3.0.1"
+  }
+}

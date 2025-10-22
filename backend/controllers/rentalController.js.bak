@@ -1,0 +1,317 @@
+const { pool } = require('../config/database');
+
+// Helper function to generate next rental ID
+async function generateRentalId() {
+  const [rows] = await pool.query('SELECT rental_id FROM rentals ORDER BY id DESC LIMIT 1');
+  if (rows.length === 0) {
+    return 'RNT000001';
+  }
+  const lastId = rows[0].rental_id;
+  const num = parseInt(lastId.replace('RNT', '')) + 1;
+  return `RNT${String(num).padStart(6, '0')}`;
+}
+
+// @desc    Create rental request
+// @route   POST /api/rentals
+// @access  Private
+exports.createRental = async (req, res) => {
+  try {
+    const { itemId, startDate, endDate } = req.body;
+
+    // Get item details
+    const [items] = await pool.query('SELECT * FROM items WHERE id = ?', [itemId]);
+    
+    if (items.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Item not found'
+      });
+    }
+
+    const item = items[0];
+
+    if (!item.available) {
+      return res.status(400).json({
+        success: false,
+        message: 'Item is not available for rent'
+      });
+    }
+
+    if (item.owner_id === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot rent your own item'
+      });
+    }
+
+    // Calculate total days and price
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    const totalPrice = days * item.price;
+
+    // Generate rental ID
+    const rentalId = await generateRentalId();
+
+    // Create rental
+    const [result] = await pool.query(`
+      INSERT INTO rentals (rental_id, item_id, borrower_id, lender_id, start_date, end_date, total_price, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
+    `, [rentalId, itemId, req.user.id, item.owner_id, startDate, endDate, totalPrice]);
+
+    res.status(201).json({
+      success: true,
+      message: 'Rental request created successfully',
+      data: {
+        id: result.insertId,
+        rentalId,
+        itemId,
+        startDate,
+        endDate,
+        totalPrice,
+        status: 'pending'
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+      return res.status(400).json({
+        success: false,
+        message: 'Item is not available for rent'
+      });
+    }
+
+    // Check if user is trying to rent their own item
+    if (item.owner._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot rent your own item'
+      });
+    }
+
+    // Calculate total days and price
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+    if (totalDays <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date range'
+      });
+    }
+
+    const totalPrice = item.price * totalDays;
+
+    const rental = await Rental.create({
+      item: itemId,
+      borrower: req.user._id,
+      lender: item.owner._id,
+      startDate,
+      endDate,
+      totalDays,
+      pricePerDay: item.price,
+      totalPrice,
+      deposit: item.deposit
+    });
+
+    await rental.populate('item borrower lender', 'name email phone');
+
+    res.status(201).json({
+      success: true,
+      data: rental
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Get all rentals (Admin)
+// @route   GET /api/rentals
+// @access  Private/Admin
+exports.getAllRentals = async (req, res) => {
+  try {
+    const rentals = await Rental.find({})
+      .populate('item', 'name itemId price')
+      .populate('borrower', 'name email phone')
+      .populate('lender', 'name email phone')
+      .sort('-createdAt');
+
+    res.json({
+      success: true,
+      count: rentals.length,
+      data: rentals
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Get user's rentals as borrower
+// @route   GET /api/rentals/myborrowing
+// @access  Private
+exports.getMyBorrowing = async (req, res) => {
+  try {
+    const [rentals] = await pool.query(`
+      SELECT r.*, i.name as itemName, i.images, i.price,
+             u.name as lenderName, u.email as lenderEmail, u.phone as lenderPhone
+      FROM rentals r
+      JOIN items i ON r.item_id = i.id
+      JOIN users u ON r.lender_id = u.id
+      WHERE r.borrower_id = ?
+      ORDER BY r.created_at DESC
+    `, [req.user.id]);
+
+    res.json({
+      success: true,
+      count: rentals.length,
+      data: rentals
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Get user's rentals as lender
+// @route   GET /api/rentals/mylending
+// @access  Private
+exports.getMyLending = async (req, res) => {
+  try {
+    const [rentals] = await pool.query(`
+      SELECT r.*, i.name as itemName, i.images, i.price,
+             u.name as borrowerName, u.email as borrowerEmail, u.phone as borrowerPhone
+      FROM rentals r
+      JOIN items i ON r.item_id = i.id
+      JOIN users u ON r.borrower_id = u.id
+      WHERE r.lender_id = ?
+      ORDER BY r.created_at DESC
+    `, [req.user.id]);
+
+    res.json({
+      success: true,
+      count: rentals.length,
+      data: rentals
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Update rental status
+// @route   PUT /api/rentals/:id/status
+// @access  Private
+exports.updateRentalStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const rental = await Rental.findById(req.params.id);
+
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rental not found'
+      });
+    }
+
+    // Only lender can approve/reject, only borrower can cancel
+    if (status === 'approved' || status === 'rejected') {
+      if (rental.lender.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        return res.status(401).json({
+          success: false,
+          message: 'Not authorized'
+        });
+      }
+    }
+
+    if (status === 'cancelled') {
+      if (rental.borrower.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        return res.status(401).json({
+          success: false,
+          message: 'Not authorized'
+        });
+      }
+    }
+
+    rental.status = status;
+
+    // Update item availability
+    if (status === 'approved') {
+      await Item.findByIdAndUpdate(rental.item, { isAvailable: false });
+      rental.status = 'active';
+    }
+
+    if (status === 'completed' || status === 'cancelled' || status === 'rejected') {
+      await Item.findByIdAndUpdate(rental.item, { isAvailable: true });
+    }
+
+    await rental.save();
+    await rental.populate('item borrower lender', 'name email phone');
+
+    res.json({
+      success: true,
+      data: rental
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Complete rental and return deposit
+// @route   PUT /api/rentals/:id/complete
+// @access  Private
+exports.completeRental = async (req, res) => {
+  try {
+    const rental = await Rental.findById(req.params.id);
+
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rental not found'
+      });
+    }
+
+    // Only lender can complete rental
+    if (rental.lender.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized'
+      });
+    }
+
+    rental.status = 'completed';
+    rental.depositReturned = true;
+    rental.returnDate = new Date();
+
+    await Item.findByIdAndUpdate(rental.item, { isAvailable: true });
+    await rental.save();
+    await rental.populate('item borrower lender', 'name email phone');
+
+    res.json({
+      success: true,
+      data: rental
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rentals Management - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Admin Navigation Tabs */
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .admin-tab {
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .admin-tab:hover {
+            background-color: #f0fdfa;
+        }
+
+        .admin-tab.active {
+            background-color: #0d9488;
+            color: white;
+        }
+
+        /* Progress Tracker */
+        .progress-tracker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            padding: 8px 0;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            flex: 1;
+            z-index: 1;
+        }
+
+        .progress-step-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 11px;
+            transition: all 0.3s;
+            border: 2px solid #e5e7eb;
+        }
+
+        .progress-step.active .progress-step-circle {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .progress-step.completed .progress-step-circle {
+            background-color: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .progress-step.cancelled .progress-step-circle {
+            background-color: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .progress-step-label {
+            margin-top: 4px;
+            font-size: 9px;
+            font-weight: 500;
+            color: #6b7280;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .progress-step.active .progress-step-label {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .progress-step.completed .progress-step-label {
+            color: #10b981;
+        }
+
+        .progress-step.cancelled .progress-step-label {
+            color: #ef4444;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 22px;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background-color: #e5e7eb;
+            z-index: 0;
+        }
+
+        .progress-line-fill {
+            height: 100%;
+            background: linear-gradient(to right, #10b981, #059669);
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+
+        /* Responsive Navigation */
+        @media (max-width: 768px) {
+            .admin-tabs {
+                flex-direction: column;
+            }
+            
+            .admin-tab {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .top-nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .progress-step-label {
+                font-size: 10px;
+            }
+
+            .progress-step-circle {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-7 h-7 text-yellow-500"></i>
+                    <span class="text-xl font-bold text-gray-800">RentMate Admin</span>
+                </div>
+                <div class="flex items-center space-x-6 top-nav-links">
+                    <a href="/index.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="home" class="w-4 h-4 inline mr-1"></i>
+                        Home
+                    </a>
+                    <a href="/dashboard.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-1"></i>
+                        Dashboard
+                    </a>
+                    <button onclick="handleLogout()" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i>
+                        Logout
+                    </button>
+                </div>
+                <button class="mobile-menu-btn text-gray-700" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Admin Tabs -->
+        <div class="bg-white rounded-lg shadow mb-8 p-4">
+            <div class="admin-tabs">
+                <button onclick="window.location.href='/admin.html'" class="admin-tab">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Users</span>
+                </button>
+                <button onclick="window.location.href='/admin/items.html'" class="admin-tab">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>Items</span>
+                </button>
+                <button onclick="window.location.href='/admin/rentals.html'" class="admin-tab active">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    <span>Rentals</span>
+                </button>
+                <button onclick="window.location.href='/admin/rental_management.html'" class="admin-tab">
+                    <i data-lucide="workflow" class="w-4 h-4"></i>
+                    <span>Rental Workflow</span>
+                </button>
+                <button onclick="window.location.href='/admin/verification.html'" class="admin-tab">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Verifications</span>
+                </button>
+                <button onclick="window.location.href='/admin/item_approval.html'" class="admin-tab">
+                    <i data-lucide="package-check" class="w-4 h-4"></i>
+                    <span>Item Approvals</span>
+                </button>
+                <button onclick="window.location.href='/admin.html'" class="admin-tab">
+                    <i data-lucide="bar-chart" class="w-4 h-4"></i>
+                    <span>Statistics</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Rentals Management</h2>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total Rentals</p>
+                            <p id="totalRentals" class="text-2xl font-bold text-gray-900">0</p>
+                        </div>
+                        <i data-lucide="calendar" class="w-10 h-10 text-blue-500"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Active</p>
+                            <p id="activeRentals" class="text-2xl font-bold text-green-600">0</p>
+                        </div>
+                        <i data-lucide="clock" class="w-10 h-10 text-green-500"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Completed</p>
+                            <p id="completedRentals" class="text-2xl font-bold text-gray-600">0</p>
+                        </div>
+                        <i data-lucide="check-circle" class="w-10 h-10 text-gray-500"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Pending</p>
+                            <p id="pendingRentals" class="text-2xl font-bold text-orange-600">0</p>
+                        </div>
+                        <i data-lucide="alert-circle" class="w-10 h-10 text-orange-500"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rentals Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rental ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Borrower</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lender</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progress</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rentalsTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Rentals will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-12">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p class="mt-4 text-gray-600">Loading rentals...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-12">
+                <i data-lucide="inbox" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                <p class="text-xl text-gray-600">No rentals found</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../app.js"></script>
+    <script>
+        let allRentals = [];
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        async function loadRentals() {
+            try {
+                document.getElementById('loadingState').classList.remove('hidden');
+                document.getElementById('emptyState').classList.add('hidden');
+                
+                const response = await api.getAllRentals();
+                console.log('Rentals Response:', response);
+                
+                // Handle different response formats
+                if (Array.isArray(response)) {
+                    allRentals = response;
+                } else if (response && Array.isArray(response.rentals)) {
+                    allRentals = response.rentals;
+                } else if (response && response.data && Array.isArray(response.data)) {
+                    allRentals = response.data;
+                } else {
+                    allRentals = [];
+                }
+
+                console.log('All Rentals:', allRentals);
+                
+                updateStats();
+                displayRentals(allRentals);
+
+            } catch (error) {
+                console.error('Error loading rentals:', error);
+                Swal.fire('Error', 'Failed to load rentals', 'error');
+                allRentals = [];
+            } finally {
+                document.getElementById('loadingState').classList.add('hidden');
+                lucide.createIcons();
+            }
+        }
+
+        function updateStats() {
+            const total = allRentals.length;
+            const active = allRentals.filter(r => r.status === 'active' || r.status === 'ongoing').length;
+            const completed = allRentals.filter(r => r.status === 'completed' || r.status === 'returned').length;
+            const pending = allRentals.filter(r => r.status === 'pending' || r.status === 'requested').length;
+
+            document.getElementById('totalRentals').textContent = total;
+            document.getElementById('activeRentals').textContent = active;
+            document.getElementById('completedRentals').textContent = completed;
+            document.getElementById('pendingRentals').textContent = pending;
+        }
+
+        function displayRentals(rentals) {
+            const tbody = document.getElementById('rentalsTableBody');
+            
+            if (!rentals || rentals.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                tbody.innerHTML = '';
+                return;
+            }
+
+            document.getElementById('emptyState').classList.add('hidden');
+            
+            tbody.innerHTML = rentals.map(rental => {
+                // Determine progress step based on status
+                const getProgressStep = (status) => {
+                    const statusMap = {
+                        'pending': 1,
+                        'requested': 1,
+                        'payment_approved': 2,
+                        'active': 2,
+                        'ongoing': 2,
+                        'returned': 3,
+                        'completed': 3,
+                        'cancelled': 0
+                    };
+                    return statusMap[status] || 1;
+                };
+
+                const currentStep = getProgressStep(rental.status);
+                const isCancelled = rental.status === 'cancelled';
+                
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${rental.rental_id || rental.id || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${rental.itemName || rental.item_name || rental.item?.name || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-600">${rental.borrowerName || rental.borrower_name || rental.borrower?.name || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-600">${rental.lenderName || rental.lender_name || rental.lender?.name || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-600">${rental.start_date ? new Date(rental.start_date).toLocaleDateString() : 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-600">${rental.end_date ? new Date(rental.end_date).toLocaleDateString() : 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">$${rental.total_price || rental.total || 0}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="progress-tracker" style="min-width: 150px;">
+                                <div class="progress-line">
+                                    <div class="progress-line-fill" style="width: ${isCancelled ? '0%' : (currentStep - 1) * 50}%;"></div>
+                                </div>
+                                <div class="progress-step ${currentStep >= 1 && !isCancelled ? 'completed' : ''} ${isCancelled ? 'cancelled' : ''}">
+                                    <div class="progress-step-circle">${isCancelled ? '✕' : (currentStep >= 1 ? '✓' : '1')}</div>
+                                    <div class="progress-step-label">${isCancelled ? 'Cancel' : 'Request'}</div>
+                                </div>
+                                <div class="progress-step ${currentStep >= 2 && !isCancelled ? 'completed' : ''} ${currentStep === 2 && !isCancelled ? 'active' : ''}">
+                                    <div class="progress-step-circle">${currentStep >= 2 ? '✓' : '2'}</div>
+                                    <div class="progress-step-label">Active</div>
+                                </div>
+                                <div class="progress-step ${currentStep >= 3 && !isCancelled ? 'completed active' : ''}">
+                                    <div class="progress-step-circle">${currentStep >= 3 ? '✓' : '3'}</div>
+                                    <div class="progress-step-label">Done</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <button onclick="viewRentalDetails('${rental.id || rental._id}')" class="text-blue-600 hover:text-blue-800 mr-3">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        async function viewRentalDetails(rentalId) {
+            // Redirect to rental details or show modal
+            Swal.fire({
+                title: 'Rental Details',
+                text: `Viewing rental ID: ${rentalId}`,
+                icon: 'info'
+            });
+        }
+
+        function handleLogout() {
+            localStorage.clear();
+            window.location.href = '../login.html';
+        }
+
+        // Initialize
+        loadRentals();
+    </script>
+</body>
+</html>
