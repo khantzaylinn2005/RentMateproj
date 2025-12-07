@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics & Analytics - RentMate Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Manrope', sans-serif;
+            background-color: #f9fafb;
+        }
+
+        /* Admin Navigation Tabs */
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .admin-tab {
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            border: none;
+            background: transparent;
+        }
+
+        .admin-tab:hover {
+            background-color: #f0fdfa;
+        }
+
+        .admin-tab.active {
+            background-color: #0d9488;
+            color: white;
+        }
+
+        .stat-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+        }
+
+        /* Responsive Navigation */
+        @media (max-width: 768px) {
+            .admin-tabs {
+                flex-direction: column;
+            }
+            
+            .admin-tab {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .top-nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-7 h-7 text-yellow-500"></i>
+                    <span class="text-xl font-bold text-gray-800">RentMate Admin</span>
+                </div>
+                <div class="flex items-center space-x-6 top-nav-links">
+                    <a href="/index.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="home" class="w-4 h-4 inline mr-1"></i>
+                        Home
+                    </a>
+                    <a href="/dashboard.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-1"></i>
+                        Dashboard
+                    </a>
+                    <button onclick="handleLogout()" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i>
+                        Logout
+                    </button>
+                </div>
+                <button class="mobile-menu-btn text-gray-700" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Admin Tabs -->
+        <div class="bg-white rounded-lg shadow mb-8 p-4">
+            <div class="admin-tabs">
+                <button onclick="window.location.href='/admin.html'" class="admin-tab">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Users</span>
+                </button>
+                <button onclick="window.location.href='/admin/items.html'" class="admin-tab">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>Items</span>
+                </button>
+                <button onclick="window.location.href='/admin/rentals.html'" class="admin-tab">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    <span>Rentals</span>
+                </button>
+                <button onclick="window.location.href='/admin/rental_management.html'" class="admin-tab">
+                    <i data-lucide="workflow" class="w-4 h-4"></i>
+                    <span>Rental Workflow</span>
+                </button>
+                <button onclick="window.location.href='/admin/verification.html'" class="admin-tab">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Verifications</span>
+                </button>
+                <button onclick="window.location.href='/admin/item_approval.html'" class="admin-tab">
+                    <i data-lucide="package-check" class="w-4 h-4"></i>
+                    <span>Item Approvals</span>
+                </button>
+                <button onclick="window.location.href='/admin/banking.html'" class="admin-tab">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                    <span>Banking</span>
+                </button>
+                <button onclick="window.location.href='/admin/statistics.html'" class="admin-tab active">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                    <span>Statistics</span>
+                </button>
+                <button onclick="window.location.href='/admin/support.html'" class="admin-tab">
+                    <i data-lucide="life-buoy" class="w-4 h-4"></i>
+                    <span>Customer Support</span>
+                </button>
+            </div>
+        </div>
+        <!-- Overview Stats -->
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow mb-8 p-5">
+            <div class="flex items-center justify-between flex-wrap gap-4 mb-4">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="sliders-horizontal" class="w-5 h-5 text-primary"></i>
+                    Dashboard Filters
+                </h2>
+                <button id="resetFilters" class="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                    Reset Filters
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label for="filterDateRange" class="text-sm font-semibold text-gray-600">Date Range</label>
+                    <select id="filterDateRange" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="all">All Time</option>
+                        <option value="7">Last 7 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last 12 Months</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterWorkflow" class="text-sm font-semibold text-gray-600">Workflow Status</label>
+                    <select id="filterWorkflow" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="all">All Workflows</option>
+                        <option value="pending">Requested / Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="active">Active / In Progress</option>
+                        <option value="returning">Returning</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled / Rejected</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterPayment" class="text-sm font-semibold text-gray-600">Payment Status</label>
+                    <select id="filterPayment" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="all">All Payments</option>
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="approved">Approved</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterSearch" class="text-sm font-semibold text-gray-600">Search Item / User</label>
+                    <div class="mt-1 relative">
+                        <input id="filterSearch" type="text" placeholder="Search rentals..." class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                        <i data-lucide="search" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <!-- Total Rentals -->
+            <div class="bg-white rounded-xl p-6 shadow stat-card">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">Total Rentals</p>
+                        <p id="totalRentals" class="text-3xl font-bold text-purple-600">0</p>
+                        <p id="totalRentalsMeta" class="text-xs text-gray-500 mt-1">All time: 0</p>
+                    </div>
+                    <div class="bg-purple-100 p-4 rounded-xl">
+                        <i data-lucide="package" class="w-8 h-8 text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <span id="rentalTrend" class="text-green-600 font-semibold">↑ 12%</span>
+                    <span class="text-gray-500 ml-2">vs last month</span>
+                </div>
+            </div>
+
+            <!-- Total Revenue -->
+            <div class="bg-white rounded-xl p-6 shadow stat-card">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">Total Revenue</p>
+                        <p id="totalRevenue" class="text-3xl font-bold text-green-600">฿0</p>
+                        <p id="totalRevenueMeta" class="text-xs text-gray-500 mt-1">All time: ฿0.00</p>
+                    </div>
+                    <div class="bg-green-100 p-4 rounded-xl">
+                        <i data-lucide="dollar-sign" class="w-8 h-8 text-green-600"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <span id="revenueTrend" class="text-green-600 font-semibold">↑ 8%</span>
+                    <span class="text-gray-500 ml-2">vs last month</span>
+                </div>
+            </div>
+
+            <!-- Total Transactions -->
+            <div class="bg-white rounded-xl p-6 shadow stat-card">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">Total Transactions</p>
+                        <p id="totalTransactions" class="text-3xl font-bold text-emerald-600">฿0.00</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="totalTransactionsCount" class="font-semibold text-emerald-700">0 payments</span>
+                            <span class="mx-1 text-gray-400">•</span>
+                            <span id="totalTransactionsMeta">All time: ฿0.00</span>
+                        </p>
+                    </div>
+                    <div class="bg-emerald-100 p-4 rounded-xl">
+                        <i data-lucide="receipt" class="w-8 h-8 text-emerald-600"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <span id="transactionRate" class="text-green-600 font-semibold">0%</span>
+                    <span class="text-gray-500 ml-2">of filtered rentals paid</span>
+                </div>
+            </div>
+
+            <!-- Active Users -->
+            <div class="bg-white rounded-xl p-6 shadow stat-card">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">Active Users</p>
+                        <p id="activeUsers" class="text-3xl font-bold text-blue-600">0</p>
+                        <p id="activeUsersMeta" class="text-xs text-gray-500 mt-1">All time: 0</p>
+                    </div>
+                    <div class="bg-blue-100 p-4 rounded-xl">
+                        <i data-lucide="users" class="w-8 h-8 text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <span id="userTrend" class="text-green-600 font-semibold">↑ 5%</span>
+                    <span class="text-gray-500 ml-2">vs last month</span>
+                </div>
+            </div>
+
+            <!-- Completion Rate -->
+            <div class="bg-white rounded-xl p-6 shadow stat-card">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">Completion Rate</p>
+                        <p id="completionRate" class="text-3xl font-bold text-teal-600">0%</p>
+                        <p id="completionRateMeta" class="text-xs text-gray-500 mt-1">All time: 0%</p>
+                    </div>
+                    <div class="bg-teal-100 p-4 rounded-xl">
+                        <i data-lucide="check-circle" class="w-8 h-8 text-teal-600"></i>
+                    </div>
+                </div>
+                <div class="flex items-center text-sm">
+                    <span id="completionTrend" class="text-green-600 font-semibold">↑ 3%</span>
+                    <span class="text-gray-500 ml-2">vs last month</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflow Status Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Workflow Distribution -->
+            <div class="bg-white rounded-xl p-6 shadow">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">
+                        <i data-lucide="pie-chart" class="w-5 h-5 inline mr-2 text-purple-600"></i>
+                        Workflow Distribution
+                    </h3>
+                    <select id="workflowPeriod" class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="all">All Time</option>
+                        <option value="month">This Month</option>
+                        <option value="week">This Week</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="workflowChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="bg-white rounded-xl p-6 shadow">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">
+                        <i data-lucide="credit-card" class="w-5 h-5 inline mr-2 text-green-600"></i>
+                        Payment Status
+                    </h3>
+                    <select id="paymentPeriod" class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="all">All Time</option>
+                        <option value="month">This Month</option>
+                        <option value="week">This Week</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Trend Line Chart -->
+        <div class="bg-white rounded-xl p-6 shadow mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800">
+                    <i data-lucide="trending-up" class="w-5 h-5 inline mr-2 text-blue-600"></i>
+                    Revenue Trend Analysis
+                </h3>
+                <div class="flex gap-2">
+                    <button data-period="week" onclick="updateRevenuePeriod('week', this)" class="revenue-period-btn px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold hover:bg-purple-200 transition">Week</button>
+                    <button data-period="month" onclick="updateRevenuePeriod('month', this)" class="revenue-period-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition">Month</button>
+                    <button data-period="year" onclick="updateRevenuePeriod('year', this)" class="revenue-period-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition">Year</button>
+                </div>
+            </div>
+            <div class="chart-container" style="height: 400px;">
+                <canvas id="revenueLineChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Rental Activity & Top Items -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Daily Rental Activity -->
+            <div class="bg-white rounded-xl p-6 shadow">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">
+                    <i data-lucide="activity" class="w-5 h-5 inline mr-2 text-orange-600"></i>
+                    Daily Rental Activity
+                </h3>
+                <div class="chart-container">
+                    <canvas id="activityBarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Rented Items -->
+            <div class="bg-white rounded-xl p-6 shadow">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">
+                    <i data-lucide="star" class="w-5 h-5 inline mr-2 text-yellow-600"></i>
+                    Top Rented Items
+                </h3>
+                <div class="chart-container">
+                    <canvas id="topItemsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Statistics -->
+        <div class="bg-white rounded-xl p-6 shadow mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i data-lucide="users-2" class="w-5 h-5 inline mr-2 text-indigo-600"></i>
+                User Growth & Activity
+            </h3>
+            <div class="chart-container" style="height: 400px;">
+                <canvas id="userGrowthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Detailed Statistics Table -->
+        <div class="bg-white rounded-xl p-6 shadow">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i data-lucide="table" class="w-5 h-5 inline mr-2 text-gray-700"></i>
+                Detailed Statistics
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Metric</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">This Week</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">This Month</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Filtered Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">All Time Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Growth</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        let allRentals = [];
+        let filteredRentals = [];
+        let allUsers = [];
+        let workflowChart, paymentChart, revenueLineChart, activityBarChart, topItemsChart, userGrowthChart;
+        let currentRevenuePeriod = 'week';
+
+        const currentFilters = {
+            dateRange: 'all',
+            workflow: 'all',
+            payment: 'all',
+            search: ''
+        };
+
+        const workflowGroups = {
+            pending: ['pending', 'requested', 'payment_pending', 'payment_made', 'payment_pending', 'payment_requested'],
+            approved: ['approved', 'payment_approved'],
+            active: ['active', 'ongoing', 'lender_confirmed', 'item_transferred'],
+            returning: ['borrower_returned', 'return_completed', 'item_returned'],
+            completed: ['completed'],
+            cancelled: ['cancelled', 'rejected']
+        };
+
+        const paymentCompletedStatuses = ['completed', 'paid', 'approved', 'transferred', 'refunded'];
+
+        const dateRangeMap = {
+            '7': 7,
+            '30': 30,
+            '90': 90,
+            '365': 365
+        };
+
+        function formatCurrency(value) {
+            const amount = Number(value || 0);
+            return '฿' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatNumber(value) {
+            return Number(value || 0).toLocaleString('en-US');
+        }
+
+        // Load all data
+        async function loadAllData() {
+            try {
+                // Load rentals
+                const rentalsResponse = await api.getAllRentals();
+                if (rentalsResponse.success) {
+                    allRentals = rentalsResponse.data;
+                }
+
+                // Load users
+                const usersResponse = await api.request('/users/');
+                if (usersResponse.success) {
+                    allUsers = usersResponse.data;
+                }
+
+                filteredRentals = [...allRentals];
+                refreshDashboard();
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                Swal.fire('Error', 'Failed to load statistics data', 'error');
+            }
+        }
+
+        function refreshDashboard() {
+            calculateStats();
+            initializeCharts();
+            populateStatsTable();
+        }
+
+        function getRentalDate(rental) {
+            const candidate = rental.updated_at || rental.created_at || rental.start_date || rental.startDate || rental.end_date || rental.endDate;
+            if (!candidate) {
+                return null;
+            }
+            const date = new Date(candidate);
+            return Number.isNaN(date.getTime()) ? null : date;
+        }
+
+        function matchesDateFilter(rental) {
+            if (currentFilters.dateRange === 'all') {
+                return true;
+            }
+            const limitDays = dateRangeMap[currentFilters.dateRange];
+            if (!limitDays) {
+                return true;
+            }
+            const rentalDate = getRentalDate(rental);
+            if (!rentalDate) {
+                return false;
+            }
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - limitDays);
+            return rentalDate >= cutoff;
+        }
+
+        function matchesWorkflowFilter(rental) {
+            if (currentFilters.workflow === 'all') {
+                return true;
+            }
+            const status = (rental.workflow_status || '').toLowerCase();
+            const group = workflowGroups[currentFilters.workflow] || [];
+            if (currentFilters.workflow === 'returning') {
+                // Combine returning set specifically
+                return ['borrower_returned', 'return_completed', 'item_returned'].includes(status);
+            }
+            return group.includes(status);
+        }
+
+        function matchesPaymentFilter(rental) {
+            if (currentFilters.payment === 'all') {
+                return true;
+            }
+            const paymentStatus = (rental.payment_status || '').toLowerCase();
+            return paymentStatus === currentFilters.payment;
+        }
+
+        function matchesSearchFilter(rental) {
+            if (!currentFilters.search) {
+                return true;
+            }
+            const query = currentFilters.search.toLowerCase();
+            const fields = [rental.itemName, rental.borrowerName, rental.lenderName, rental.rental_id];
+            return fields.some(field => typeof field === 'string' && field.toLowerCase().includes(query));
+        }
+
+        function applyFilters() {
+            filteredRentals = allRentals.filter(rental => {
+                return matchesDateFilter(rental) && matchesWorkflowFilter(rental) && matchesPaymentFilter(rental) && matchesSearchFilter(rental);
+            });
+            refreshDashboard();
+        }
+
+        function destroyChartInstance(chartInstance) {
+            if (chartInstance && typeof chartInstance.destroy === 'function') {
+                chartInstance.destroy();
+            }
+        }
+
+        // Calculate overview statistics
+        function calculateStats() {
+            const filteredCount = filteredRentals.length;
+            const totalCount = allRentals.length;
+            document.getElementById('totalRentals').textContent = formatNumber(filteredCount);
+            document.getElementById('totalRentalsMeta').textContent = `All time: ${formatNumber(totalCount)}`;
+
+            const filteredRevenue = filteredRentals.reduce((sum, rental) => sum + parseFloat(rental.total_price || 0), 0);
+            const totalRevenue = allRentals.reduce((sum, rental) => sum + parseFloat(rental.total_price || 0), 0);
+            document.getElementById('totalRevenue').textContent = formatCurrency(filteredRevenue);
+            document.getElementById('totalRevenueMeta').textContent = `All time: ${formatCurrency(totalRevenue)}`;
+
+            const filteredTransactionRecords = filteredRentals.filter(r => paymentCompletedStatuses.includes((r.payment_status || '').toLowerCase()));
+            const totalTransactionRecords = allRentals.filter(r => paymentCompletedStatuses.includes((r.payment_status || '').toLowerCase()));
+
+            const filteredTransactionsCount = filteredTransactionRecords.length;
+            const totalTransactionsCount = totalTransactionRecords.length;
+
+            const filteredTransactionsAmount = filteredTransactionRecords.reduce((sum, rental) => sum + parseFloat(rental.total_price || rental.payment_amount || 0), 0);
+            const totalTransactionsAmount = totalTransactionRecords.reduce((sum, rental) => sum + parseFloat(rental.total_price || rental.payment_amount || 0), 0);
+
+            document.getElementById('totalTransactions').textContent = formatCurrency(filteredTransactionsAmount);
+            document.getElementById('totalTransactionsCount').textContent = `${formatNumber(filteredTransactionsCount)} ${filteredTransactionsCount === 1 ? 'payment' : 'payments'}`;
+            document.getElementById('totalTransactionsMeta').textContent = `All time: ${formatCurrency(totalTransactionsAmount)} (${formatNumber(totalTransactionsCount)} total)`;
+
+            const transactionRate = filteredCount > 0 ? ((filteredTransactionsCount / filteredCount) * 100).toFixed(1) : '0.0';
+            document.getElementById('transactionRate').textContent = `${transactionRate}%`;
+
+            const filteredActiveUsers = new Set();
+            filteredRentals.forEach(rental => {
+                filteredActiveUsers.add(rental.borrower_id);
+                filteredActiveUsers.add(rental.lender_id);
+            });
+            const totalActiveUsers = new Set();
+            allRentals.forEach(rental => {
+                totalActiveUsers.add(rental.borrower_id);
+                totalActiveUsers.add(rental.lender_id);
+            });
+            document.getElementById('activeUsers').textContent = formatNumber(filteredActiveUsers.size);
+            document.getElementById('activeUsersMeta').textContent = `All time: ${formatNumber(totalActiveUsers.size)}`;
+
+            const filteredCompleted = filteredRentals.filter(r => (r.workflow_status || '').toLowerCase() === 'completed').length;
+            const filteredCompletionRate = filteredCount > 0 ? ((filteredCompleted / filteredCount) * 100).toFixed(1) : '0.0';
+            const totalCompleted = allRentals.filter(r => (r.workflow_status || '').toLowerCase() === 'completed').length;
+            const totalCompletionRate = totalCount > 0 ? ((totalCompleted / totalCount) * 100).toFixed(1) : '0.0';
+            document.getElementById('completionRate').textContent = `${filteredCompletionRate}%`;
+            document.getElementById('completionRateMeta').textContent = `All time: ${totalCompletionRate}%`;
+        }
+
+        // Initialize all charts
+        function initializeCharts() {
+            destroyChartInstance(workflowChart);
+            destroyChartInstance(paymentChart);
+            destroyChartInstance(revenueLineChart);
+            destroyChartInstance(activityBarChart);
+            destroyChartInstance(topItemsChart);
+            destroyChartInstance(userGrowthChart);
+
+            initWorkflowChart();
+            initPaymentChart();
+            initRevenueLineChart();
+            initActivityBarChart();
+            initTopItemsChart();
+            initUserGrowthChart();
+        }
+
+        // Workflow Distribution Chart
+        function initWorkflowChart() {
+            const ctx = document.getElementById('workflowChart').getContext('2d');
+            const dataset = filteredRentals;
+
+            const workflowCounts = {
+                'Requested': dataset.filter(r => ['pending', 'requested', 'payment_pending'].includes((r.workflow_status || '').toLowerCase())).length,
+                'Payment Made': dataset.filter(r => ['payment_made', 'payment_confirmed'].includes((r.workflow_status || '').toLowerCase())).length,
+                'Approved': dataset.filter(r => ['approved', 'payment_approved'].includes((r.workflow_status || '').toLowerCase())).length,
+                'Active': dataset.filter(r => ['active', 'ongoing', 'lender_confirmed', 'item_transferred'].includes((r.workflow_status || '').toLowerCase())).length,
+                'Returned': dataset.filter(r => ['borrower_returned', 'return_completed', 'item_returned', 'return_confirmed'].includes((r.workflow_status || '').toLowerCase())).length,
+                'Completed': dataset.filter(r => (r.workflow_status || '').toLowerCase() === 'completed').length,
+                'Cancelled': dataset.filter(r => ['cancelled', 'rejected'].includes((r.workflow_status || '').toLowerCase())).length
+            };
+
+            workflowChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(workflowCounts),
+                    datasets: [{
+                        data: Object.values(workflowCounts),
+                        backgroundColor: [
+                            '#fbbf24', // Yellow - Requested
+                            '#f59e0b', // Orange - Payment Made
+                            '#3b82f6', // Blue - Approved
+                            '#10b981', // Green - Active
+                            '#8b5cf6', // Purple - Returned
+                            '#06b6d4', // Cyan - Completed
+                            '#ef4444'  // Red - Cancelled
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12,
+                                    family: 'Manrope'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Payment Status Chart
+        function initPaymentChart() {
+            const ctx = document.getElementById('paymentChart').getContext('2d');
+            
+            const dataset = filteredRentals;
+            const paymentCounts = {
+                'Pending': dataset.filter(r => (r.payment_status || '').toLowerCase() === 'pending').length,
+                'Paid': dataset.filter(r => (r.payment_status || '').toLowerCase() === 'paid').length,
+                'Approved': dataset.filter(r => (r.payment_status || '').toLowerCase() === 'approved').length,
+                'Failed': dataset.filter(r => (r.payment_status || '').toLowerCase() === 'failed').length
+            };
+
+            paymentChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(paymentCounts),
+                    datasets: [{
+                        data: Object.values(paymentCounts),
+                        backgroundColor: [
+                            '#fbbf24', // Yellow - Pending
+                            '#10b981', // Green - Paid
+                            '#3b82f6', // Blue - Approved
+                            '#ef4444'  // Red - Failed
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12,
+                                    family: 'Manrope'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Revenue Line Chart
+        function initRevenueLineChart() {
+            const ctx = document.getElementById('revenueLineChart').getContext('2d');
+            const data = getRevenueData(currentRevenuePeriod);
+
+            revenueLineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Revenue (฿)',
+                        data: data.values,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#8b5cf6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    family: 'Manrope',
+                                    weight: '600'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Revenue: ฿' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '฿' + value;
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Get revenue data based on period
+        function getRevenueData(period) {
+            const dataset = filteredRentals;
+            const now = new Date();
+            let labels = [];
+            let values = [];
+
+            if (period === 'week') {
+                // Last 7 days
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                    
+                    const dayRevenue = dataset
+                        .filter(r => r.created_at && r.created_at.startsWith(dateStr))
+                        .reduce((sum, r) => sum + parseFloat(r.total_price || 0), 0);
+                    values.push(dayRevenue);
+                }
+            } else if (period === 'month') {
+                // Last 30 days grouped by week
+                for (let i = 4; i >= 0; i--) {
+                    const weekStart = new Date(now);
+                    weekStart.setDate(weekStart.getDate() - (i * 7));
+                    labels.push('Week ' + (5 - i));
+                    
+                    const weekRevenue = dataset
+                        .filter(r => {
+                            if (!r.created_at) return false;
+                            const rentalDate = new Date(r.created_at);
+                            return rentalDate >= weekStart && rentalDate < new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+                        })
+                        .reduce((sum, r) => sum + parseFloat(r.total_price || 0), 0);
+                    values.push(weekRevenue);
+                }
+            } else if (period === 'year') {
+                // Last 12 months
+                for (let i = 11; i >= 0; i--) {
+                    const date = new Date(now);
+                    date.setMonth(date.getMonth() - i);
+                    labels.push(date.toLocaleDateString('en-US', { month: 'short' }));
+                    
+                    const month = date.getMonth();
+                    const year = date.getFullYear();
+                    const monthRevenue = dataset
+                        .filter(r => {
+                            if (!r.created_at) return false;
+                            const rentalDate = new Date(r.created_at);
+                            return rentalDate.getMonth() === month && rentalDate.getFullYear() === year;
+                        })
+                        .reduce((sum, r) => sum + parseFloat(r.total_price || 0), 0);
+                    values.push(monthRevenue);
+                }
+            }
+
+            return { labels, values };
+        }
+
+        // Update revenue period
+        function updateRevenuePeriod(period, buttonEl) {
+            currentRevenuePeriod = period;
+            
+            // Update button styles
+            document.querySelectorAll('.revenue-period-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-100', 'text-purple-700');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            if (buttonEl) {
+                buttonEl.classList.remove('bg-gray-100', 'text-gray-700');
+                buttonEl.classList.add('bg-purple-100', 'text-purple-700');
+            }
+            
+            // Update chart
+            const data = getRevenueData(period);
+            revenueLineChart.data.labels = data.labels;
+            revenueLineChart.data.datasets[0].data = data.values;
+            revenueLineChart.update();
+        }
+
+        function syncRevenueButtons() {
+            const activeButton = document.querySelector(`.revenue-period-btn[data-period="${currentRevenuePeriod}"]`);
+            document.querySelectorAll('.revenue-period-btn').forEach(btn => {
+                btn.classList.remove('bg-purple-100', 'text-purple-700');
+                btn.classList.add('bg-gray-100', 'text-gray-700');
+            });
+            if (activeButton) {
+                activeButton.classList.remove('bg-gray-100', 'text-gray-700');
+                activeButton.classList.add('bg-purple-100', 'text-purple-700');
+            }
+        }
+
+        // Daily Activity Bar Chart
+        function initActivityBarChart() {
+            const ctx = document.getElementById('activityBarChart').getContext('2d');
+            
+            // Last 7 days activity
+            const labels = [];
+            const rentalCounts = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                
+                const count = allRentals.filter(r => r.created_at && r.created_at.startsWith(dateStr)).length;
+                rentalCounts.push(count);
+            }
+
+            activityBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Rentals Created',
+                        data: rentalCounts,
+                        backgroundColor: 'rgba(249, 115, 22, 0.8)',
+                        borderColor: '#f97316',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Top Items Chart
+        function initTopItemsChart() {
+            const ctx = document.getElementById('topItemsChart').getContext('2d');
+            
+            // Count rentals by item
+            const itemCounts = {};
+            allRentals.forEach(rental => {
+                const itemName = rental.itemName || 'Unknown';
+                itemCounts[itemName] = (itemCounts[itemName] || 0) + 1;
+            });
+
+            // Get top 5 items
+            const sortedItems = Object.entries(itemCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            const labels = sortedItems.map(item => item[0]);
+            const values = sortedItems.map(item => item[1]);
+
+            topItemsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Times Rented',
+                        data: values,
+                        backgroundColor: [
+                            'rgba(234, 179, 8, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(251, 191, 36, 0.8)',
+                            'rgba(253, 224, 71, 0.8)'
+                        ],
+                        borderColor: [
+                            '#eab308',
+                            '#f59e0b',
+                            '#f97316',
+                            '#fbbf24',
+                            '#fde047'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // User Growth Chart
+        function initUserGrowthChart() {
+            const ctx = document.getElementById('userGrowthChart').getContext('2d');
+            
+            // Last 12 months user registration
+            const labels = [];
+            const userCounts = [];
+            const now = new Date();
+            
+            for (let i = 11; i >= 0; i--) {
+                const date = new Date(now);
+                date.setMonth(date.getMonth() - i);
+                labels.push(date.toLocaleDateString('en-US', { month: 'short' }));
+                
+                const month = date.getMonth();
+                const year = date.getFullYear();
+                const count = allUsers.filter(u => {
+                    if (!u.created_at) return false;
+                    const userDate = new Date(u.created_at);
+                    return userDate.getMonth() === month && userDate.getFullYear() === year;
+                }).length;
+                userCounts.push(count);
+            }
+
+            userGrowthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'New Users',
+                        data: userCounts,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#6366f1',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    family: 'Manrope',
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate statistics table
+        function populateStatsTable() {
+            const tbody = document.getElementById('statsTableBody');
+            const now = new Date();
+            
+            // Helper to filter by date range
+            const getWeekData = (data) => data.filter(item => {
+                if (!item.created_at) return false;
+                const date = new Date(item.created_at);
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                return date >= weekAgo;
+            });
+            
+            const getMonthData = (data) => data.filter(item => {
+                if (!item.created_at) return false;
+                const date = new Date(item.created_at);
+                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+            });
+
+            const paidRentals = allRentals.filter(r => paymentCompletedStatuses.includes((r.payment_status || '').toLowerCase()));
+            const paidWeekData = getWeekData(paidRentals);
+            const paidMonthData = getMonthData(paidRentals);
+
+            const paidThisWeekCount = paidWeekData.length;
+            const paidThisMonthCount = paidMonthData.length;
+            const paidAllTimeCount = paidRentals.length;
+
+            const paidThisWeekAmount = paidWeekData.reduce((sum, r) => sum + parseFloat(r.total_price || r.payment_amount || 0), 0);
+            const paidThisMonthAmount = paidMonthData.reduce((sum, r) => sum + parseFloat(r.total_price || r.payment_amount || 0), 0);
+            const paidAllTimeAmount = paidRentals.reduce((sum, r) => sum + parseFloat(r.total_price || r.payment_amount || 0), 0);
+
+            const stats = [
+                {
+                    metric: 'Total Rentals',
+                    week: getWeekData(allRentals).length,
+                    month: getMonthData(allRentals).length,
+                    allTime: allRentals.length,
+                    growth: '+15%'
+                },
+                {
+                    metric: 'Completed Rentals',
+                    week: getWeekData(allRentals.filter(r => r.workflow_status === 'completed')).length,
+                    month: getMonthData(allRentals.filter(r => r.workflow_status === 'completed')).length,
+                    allTime: allRentals.filter(r => r.workflow_status === 'completed').length,
+                    growth: '+12%'
+                },
+                {
+                    metric: 'Active Rentals',
+                    week: getWeekData(allRentals.filter(r => r.workflow_status === 'active')).length,
+                    month: getMonthData(allRentals.filter(r => r.workflow_status === 'active')).length,
+                    allTime: allRentals.filter(r => r.workflow_status === 'active').length,
+                    growth: '+8%'
+                },
+                {
+                    metric: 'Revenue Generated',
+                    week: '฿' + getWeekData(allRentals).reduce((sum, r) => sum + parseFloat(r.total_price || 0), 0).toFixed(2),
+                    month: '฿' + getMonthData(allRentals).reduce((sum, r) => sum + parseFloat(r.total_price || 0), 0).toFixed(2),
+                    allTime: '฿' + allRentals.reduce((sum, r) => sum + parseFloat(r.total_price || 0), 0).toFixed(2),
+                    growth: '+18%'
+                },
+                {
+                    metric: 'Transactions Completed',
+                    week: `${formatCurrency(paidThisWeekAmount)} (${formatNumber(paidThisWeekCount)})`,
+                    month: `${formatCurrency(paidThisMonthAmount)} (${formatNumber(paidThisMonthCount)})`,
+                    allTime: `${formatCurrency(paidAllTimeAmount)} (${formatNumber(paidAllTimeCount)})`,
+                    growth: '+10%'
+                },
+                {
+                    metric: 'New Users',
+                    week: getWeekData(allUsers).length,
+                    month: getMonthData(allUsers).length,
+                    allTime: allUsers.length,
+                    growth: '+5%'
+                }
+            ];
+
+            tbody.innerHTML = stats.map(stat => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-semibold text-gray-900">${stat.metric}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-700">${stat.week}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-700">${stat.month}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-semibold text-gray-900">${stat.allTime}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            ${stat.growth}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function handleLogout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        function toggleMobileMenu() {
+            const navLinks = document.querySelector('.top-nav-links');
+            if (navLinks) {
+                navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllData();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

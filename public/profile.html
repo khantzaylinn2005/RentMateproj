@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Profile Grid Styles */
+        @media (min-width: 1024px) {
+            .profile-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            padding: 1.5rem 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .sidebar-logo i {
+            width: 32px;
+            height: 32px;
+        }
+
+        .sidebar-logo span {
+            font-size: 1.375rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-nav {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.875rem 0.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.125rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .sidebar-user-menu a {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-user-menu a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i data-lucide="tent" class="w-8 h-8"></i>
+            <span class="text-xl font-bold">RentMate</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/browse_items.html" class="sidebar-link">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span>Browse Items</span>
+            </a>
+            <a href="/dashboard.html" class="sidebar-link">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/list_new_item.html" class="sidebar-link">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>List New Item</span>
+            </a>
+            <a href="/my_items.html" class="sidebar-link">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span>My Items</span>
+            </a>
+            <a href="/borrowing.html" class="sidebar-link">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span>Borrowing</span>
+            </a>
+            <a href="/lending.html" class="sidebar-link">
+                <i data-lucide="truck" class="w-5 h-5"></i>
+                <span>Lending</span>
+            </a>
+            <a href="/chat.html" class="sidebar-link">
+                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/notification.html" class="sidebar-link" id="notificationsLink">
+                <div class="relative">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
+                </div>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="sidebarUserName" class="font-semibold text-sm">User</div>
+                    <div class="text-xs text-white/70" id="userRole">Member</div>
+                </div>
+            </div>
+            <div class="sidebar-user-menu">
+                <a href="/profile.html" class="active">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Profile
+                </a>
+                <a href="/support.html">
+                    <i data-lucide="life-buoy" class="w-4 h-4 inline mr-2"></i>
+                    Customer Support
+                </a>
+                <a href="#" onclick="handleLogout()">
+                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container mx-auto px-6 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">My Profile</h1>
+            <p class="text-gray-600 mt-2">Manage your account information</p>
+        </div>
+
+        <form id="profileForm" onsubmit="handleUpdateProfile(event)">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Profile Information Column -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <div class="flex items-center mb-6 pb-4 border-b">
+                        <i data-lucide="user" class="w-6 h-6 text-primary mr-2"></i>
+                        <h2 class="text-xl font-bold text-gray-800">Profile Information</h2>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input type="text" id="profileName" name="name" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                               required>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="profileEmail" name="email" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                               required>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <input type="text" id="profileLocation" name="location" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                               required>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input type="tel" id="profilePhone" name="phone" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                               required>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Passport No.</label>
+                        <input type="text" id="profilePassport" name="passportNo" disabled 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                        <p class="text-xs text-gray-500 mt-1">Passport number cannot be changed after registration</p>
+                    </div>
+                    
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                        <div class="flex items-center">
+                            <span id="profileRating" class="text-3xl font-bold text-yellow-500">0.0</span>
+                            <i data-lucide="star" class="w-8 h-8 text-yellow-500 ml-2 fill-current"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Your average rating from all transactions</p>
+                    </div>
+                </div>
+
+                <!-- Bank Account Information Column -->
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <div class="flex items-center mb-6 pb-4 border-b">
+                        <i data-lucide="credit-card" class="w-6 h-6 text-primary mr-2"></i>
+                        <h2 class="text-xl font-bold text-gray-800">Bank Account Information</h2>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-6">This information will be used for receiving rental payments</p>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Account Holder Name</label>
+                        <input type="text" id="bankAccName" name="bank_acc_name" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                               placeholder="Enter account holder name">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                        <input type="text" id="bankName" name="bank_name" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                               placeholder="e.g., Bank of America, Chase">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                        <input type="text" id="bankNumber" name="bank_number" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono" 
+                               placeholder="Enter account number">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Payment QR Code</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer" 
+                             id="qrUploadArea">
+                            <input type="file" id="qrCodeInput" accept="image/*" class="hidden">
+                            <div id="qrPlaceholder">
+                                <i data-lucide="qr-code" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+                                <p class="text-sm text-gray-600 font-medium">Click to upload QR code</p>
+                                <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                            </div>
+                            <div id="qrPreview" class="hidden">
+                                <img id="qrImage" src="" alt="QR Code" class="max-w-full max-h-48 mx-auto rounded-lg border-2 border-gray-200">
+                                <button type="button" id="removeQr" class="mt-3 text-sm text-red-600 hover:text-red-700 font-medium">
+                                    <i data-lucide="x-circle" class="w-4 h-4 inline mr-1"></i>
+                                    Remove QR code
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Upload a QR code for easy payment collection</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Button -->
+            <div class="mt-6">
+                <button type="submit" class="btn-primary w-full lg:w-auto px-8 py-3 text-base">
+                    <i data-lucide="save" class="w-5 h-5 inline mr-2"></i>
+                    Update Profile
+                </button>
+            </div>
+        </form>
+
+            <!-- Account Stats -->
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-6 rounded-lg shadow text-center">
+                    <i data-lucide="package" class="w-8 h-8 text-primary mx-auto mb-2"></i>
+                    <div class="text-2xl font-bold text-gray-800" id="statsItems">0</div>
+                    <div class="text-sm text-gray-600">Items Listed</div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow text-center">
+                    <i data-lucide="shopping-bag" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                    <div class="text-2xl font-bold text-gray-800" id="statsBorrowing">0</div>
+                    <div class="text-sm text-gray-600">Borrowing</div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow text-center">
+                    <i data-lucide="hand-coins" class="w-8 h-8 text-green-600 mx-auto mb-2"></i>
+                    <div class="text-2xl font-bold text-gray-800" id="statsLending">0</div>
+                    <div class="text-sm text-gray-600">Lending</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script src="/dashboard.js"></script>
+    <script>
+        // Check authentication
+        if (!currentUser) {
+            window.location.href = '/login.html';
+        }
+
+        // Update sidebar user info
+        if (currentUser) {
+            document.getElementById('sidebarUserName').textContent = currentUser.name || 'User';
+            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Admin' : 'Member';
+            document.getElementById('userAvatar').textContent = (currentUser.name || 'U').charAt(0).toUpperCase();
+        }
+
+        // Load profile data
+        async function loadProfile() {
+            try {
+                const response = await api.getProfile();
+                const user = response.data || response; // Handle both response formats
+                
+                // Populate form
+                document.getElementById('profileName').value = user.name || '';
+                document.getElementById('profileEmail').value = user.email || '';
+                document.getElementById('profileLocation').value = user.location || '';
+                document.getElementById('profilePhone').value = user.phone || '';
+                document.getElementById('profilePassport').value = user.passport_no || '';
+                document.getElementById('profileRating').textContent = Number(user.rating || 0).toFixed(1);
+
+                // Populate bank information
+                document.getElementById('bankAccName').value = user.bank_acc_name || '';
+                document.getElementById('bankName').value = user.bank_name || '';
+                document.getElementById('bankNumber').value = user.bank_number || '';
+                
+                // Display QR code if exists
+                if (user.qr_code) {
+                    document.getElementById('qrImage').src = user.qr_code;
+                    document.getElementById('qrPlaceholder').classList.add('hidden');
+                    document.getElementById('qrPreview').classList.remove('hidden');
+                }
+
+                // Update sidebar user info
+                if (document.getElementById('sidebarUserName')) {
+                    document.getElementById('sidebarUserName').textContent = user.name || 'User';
+                }
+                if (document.getElementById('userAvatar')) {
+                    document.getElementById('userAvatar').textContent = (user.name || 'U').charAt(0).toUpperCase();
+                }
+
+                // Load stats
+                loadStats();
+                
+                // Re-initialize icons after content update
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showNotification('Failed to load profile', 'error');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const [itemsResponse, borrowingResponse, lendingResponse] = await Promise.all([
+                    api.getMyItems(),
+                    api.getMyBorrowing(),
+                    api.getMyLending()
+                ]);
+
+                // Extract data from responses
+                const items = itemsResponse.data || itemsResponse || [];
+                const borrowing = borrowingResponse.data || borrowingResponse || [];
+                const lending = lendingResponse.data || lendingResponse || [];
+
+                document.getElementById('statsItems').textContent = items.length || 0;
+                document.getElementById('statsBorrowing').textContent = borrowing.length || 0;
+                document.getElementById('statsLending').textContent = lending.length || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function handleUpdateProfile(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                location: formData.get('location'),
+                phone: formData.get('phone'),
+                bank_acc_name: formData.get('bank_acc_name'),
+                bank_number: formData.get('bank_number'),
+                bank_name: formData.get('bank_name')
+            };
+
+            // Add QR code if uploaded
+            const qrImage = document.getElementById('qrImage').src;
+            if (qrImage && qrImage.startsWith('data:')) {
+                data.qr_code = qrImage;
+            } else if (qrImage && !qrImage.includes('blob:')) {
+                // Keep existing QR code
+                data.qr_code = qrImage;
+            }
+
+            try {
+                // Show loading
+                Swal.fire({
+                    title: 'Updating Profile...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                await api.updateProfile(data);
+                
+                // Update currentUser in localStorage
+                const updatedUser = { ...currentUser, ...data };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Profile Updated!',
+                    text: 'Your profile has been updated successfully',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0d9488',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Update Failed',
+                    text: error.message || 'Failed to update profile. Please try again.',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // Load notifications count
+        async function loadNotifications() {
+            try {
+                const response = await api.request('/notifications');
+                const notifications = response.data || response || [];
+                
+                const unreadCount = notifications.filter(n => !n.is_read).length;
+                const badge = document.getElementById('notificationBadge');
+                
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        // Show notifications modal
+        async function showNotificationsModal() {
+            try {
+                const response = await api.request('/notifications');
+                const notifications = response.data || response || [];
+
+                if (notifications.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Notifications',
+                        text: 'You have no notifications at this time.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return;
+                }
+
+                const notificationList = notifications.map(notification => `
+                    <div class="border-b border-gray-200 pb-3 mb-3 text-left ${notification.is_read ? 'opacity-60' : ''}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900">${notification.title}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                                <p class="text-xs text-gray-400 mt-1">${new Date(notification.created_at).toLocaleDateString()}</p>
+                            </div>
+                            ${!notification.is_read ? '<span class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-1"></span>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                Swal.fire({
+                    title: 'Notifications',
+                    html: `
+                        <div class="max-h-96 overflow-y-auto">
+                            ${notificationList}
+                        </div>
+                    `,
+                    width: '600px',
+                    confirmButtonText: 'Close',
+                    confirmButtonColor: '#0d9488',
+                    didOpen: () => {
+                        // Mark all as read
+                        api.request('/notifications/mark-read', { method: 'PUT' }).then(() => {
+                            loadNotifications();
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error showing notifications:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load notifications',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // QR Code Upload Handling
+        const qrUploadArea = document.getElementById('qrUploadArea');
+        const qrCodeInput = document.getElementById('qrCodeInput');
+        const qrPlaceholder = document.getElementById('qrPlaceholder');
+        const qrPreview = document.getElementById('qrPreview');
+        const qrImage = document.getElementById('qrImage');
+        const removeQrBtn = document.getElementById('removeQr');
+
+        qrUploadArea.addEventListener('click', () => {
+            qrCodeInput.click();
+        });
+
+        qrCodeInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification('File size must be less than 5MB', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    qrImage.src = e.target.result;
+                    qrPlaceholder.classList.add('hidden');
+                    qrPreview.classList.remove('hidden');
+                    lucide.createIcons();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeQrBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            qrCodeInput.value = '';
+            qrPlaceholder.classList.remove('hidden');
+            qrPreview.classList.add('hidden');
+            qrImage.src = '';
+        });
+
+        // Drag and drop for QR code
+        qrUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            qrUploadArea.classList.add('border-primary', 'bg-blue-50');
+        });
+
+        qrUploadArea.addEventListener('dragleave', () => {
+            qrUploadArea.classList.remove('border-primary', 'bg-blue-50');
+        });
+
+        qrUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            qrUploadArea.classList.remove('border-primary', 'bg-blue-50');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification('File size must be less than 5MB', 'error');
+                    return;
+                }
+                
+                qrCodeInput.files = e.dataTransfer.files;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    qrImage.src = e.target.result;
+                    qrPlaceholder.classList.add('hidden');
+                    qrPreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await loadProfile();
+            await loadNotifications();
+
+            // Refresh notifications every 30 seconds
+            setInterval(loadNotifications, 30000);
+        });
+    </script>
+</body>
+</html>

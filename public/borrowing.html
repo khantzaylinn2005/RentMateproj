@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Borrowing - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            padding: 1.5rem 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .sidebar-logo i {
+            width: 32px;
+            height: 32px;
+        }
+
+        .sidebar-logo span {
+            font-size: 1.375rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-nav {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.875rem 0.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-link.lender-feature[data-locked="true"] {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .sidebar-link.lender-feature[data-locked="true"]:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: none;
+        }
+
+        .locked-icon {
+            opacity: 0.7;
+        }
+
+        .sidebar-link.lender-feature[data-locked="false"] .locked-icon {
+            display: none;
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.125rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .sidebar-user-menu a {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-user-menu a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i data-lucide="tent" class="w-8 h-8"></i>
+            <span class="text-xl font-bold">RentMate</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/browse_items.html" class="sidebar-link">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span>Browse Items</span>
+            </a>
+            <a href="/dashboard.html" class="sidebar-link">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/list_new_item.html" class="sidebar-link">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>List New Item</span>
+            </a>
+            <a href="/my_items.html" class="sidebar-link">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span>My Items</span>
+            </a>
+            <a href="/borrowing.html" class="sidebar-link active">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span>Borrowing</span>
+            </a>
+            <a href="/lending.html" class="sidebar-link">
+                <i data-lucide="truck" class="w-5 h-5"></i>
+                <span>Lending</span>
+            </a>
+            <a href="/chat.html" class="sidebar-link">
+                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/notification.html" id="notificationsLink" class="sidebar-link">
+                <div class="relative inline-block">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="notificationBadge" class="absolute -top-1 -right-1 hidden bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"></span>
+                </div>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="sidebarUserName" class="font-semibold text-sm">User</div>
+                    <div class="text-xs text-white/70" id="userRole">Member</div>
+                </div>
+            </div>
+            <div class="sidebar-user-menu">
+                <a href="/profile.html">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Profile
+                </a>
+                <a href="/support.html">
+                    <i data-lucide="life-buoy" class="w-4 h-4 inline mr-2"></i>
+                    Customer Support
+                </a>
+                <a href="#" onclick="handleLogout()">
+                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container mx-auto px-6 py-6">
+            <!-- Header Section -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 uppercase tracking-wide">My Borrowing</h1>
+                <p class="text-gray-600 text-sm mt-1">Track and manage your rental requests</p>
+            </div>
+
+            <!-- Rentals List -->
+            <div id="borrowingList" class="space-y-3">
+                <!-- Borrowing rentals will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script src="/dashboard.js"></script>
+    <script>
+        // Check authentication
+        if (!currentUser) {
+            window.location.href = '/login.html';
+        }
+
+        function getPrimaryImage(images) {
+            if (!images) {
+                return '/assets/images/placeholder.jpg';
+            }
+            if (Array.isArray(images)) {
+                const first = images.find((img) => typeof img === 'string' && img.trim().length > 0);
+                return first || '/assets/images/placeholder.jpg';
+            }
+            if (typeof images === 'string') {
+                try {
+                    const parsed = JSON.parse(images);
+                    if (Array.isArray(parsed)) {
+                        const first = parsed.find((img) => typeof img === 'string' && img.trim().length > 0);
+                        if (first) {
+                            return first;
+                        }
+                    }
+                } catch (error) {
+                    if (images.trim().startsWith('data:image')) {
+                        return images.trim();
+                    }
+                    if (images.trim().length > 0) {
+                        return images.trim();
+                    }
+                }
+            }
+            return '/assets/images/placeholder.jpg';
+        }
+
+        function formatDateDisplay(dateValue) {
+            if (!dateValue) {
+                return null;
+            }
+            const date = new Date(dateValue);
+            if (Number.isNaN(date.getTime())) {
+                return null;
+            }
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function formatDateTimeDisplay(dateValue) {
+            if (!dateValue) {
+                return null;
+            }
+            const date = new Date(dateValue);
+            if (Number.isNaN(date.getTime())) {
+                return null;
+            }
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getReturnDateInfo(rental) {
+            const lenderConfirmed = rental.lender_confirmed_return_at;
+            const borrowerConfirmed = rental.borrower_confirmed_return_at;
+            const scheduled = rental.end_date || rental.endDate;
+
+            if (lenderConfirmed) {
+                return {
+                    label: 'Return confirmed by lender',
+                    value: formatDateTimeDisplay(lenderConfirmed)
+                };
+            }
+
+            if (borrowerConfirmed) {
+                return {
+                    label: 'Return marked by you',
+                    value: formatDateTimeDisplay(borrowerConfirmed)
+                };
+            }
+
+            return {
+                label: 'Scheduled return date',
+                value: formatDateDisplay(scheduled)
+            };
+        }
+
+        // Check if user has bank account information
+        function checkBankAccountInfo() {
+            // Check if all bank account fields are filled
+            if (!currentUser.bank_acc_name || !currentUser.bank_number || !currentUser.bank_name) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Bank Account Required',
+                    html: `
+                        <p class="text-gray-700 mb-4">You need to fill in your bank account information to access this page.</p>
+                        <p class="text-sm text-gray-600">This information is required for rental transactions.</p>
+                    `,
+                    confirmButtonText: 'Go to Profile',
+                    confirmButtonColor: '#0d9488',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then(() => {
+                    window.location.href = '/profile.html';
+                });
+                return false;
+            }
+            return true;
+        }
+
+        // Update sidebar user info
+        if (currentUser) {
+            document.getElementById('sidebarUserName').textContent = currentUser.name || 'User';
+            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Admin' : 'Member';
+            document.getElementById('userAvatar').textContent = (currentUser.name || 'U').charAt(0).toUpperCase();
+        }
+
+        // Load borrowing data
+        async function loadBorrowing() {
+            try {
+                const response = await api.getMyBorrowing();
+                const rentals = response.data || [];
+                displayBorrowing(rentals);
+            } catch (error) {
+                console.error('Error loading borrowing:', error);
+                Swal.fire('Error', 'Failed to load borrowing history', 'error');
+            }
+        }
+
+        async function displayBorrowing(rentals) {
+            const borrowingList = document.getElementById('borrowingList');
+            
+            if (!rentals || rentals.length === 0) {
+                borrowingList.innerHTML = `
+                    <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+                        <i data-lucide="shopping-bag" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">No Active Rentals</h3>
+                        <p class="text-gray-600 text-sm mb-4">You haven't borrowed any items yet.</p>
+                        <a href="/browse_items.html" class="inline-flex items-center gap-2 px-6 py-2.5 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors text-sm uppercase tracking-wide">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                            Browse Items
+                        </a>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            borrowingList.innerHTML = '';
+            
+            // Load rentals and check review status for each
+            for (const rental of rentals) {
+                const workflowStatus = rental.workflow_status || 'pending';
+                let normalizedStatus = workflowStatus;
+                if ((workflowStatus === 'payment_pending' || workflowStatus === 'pending') && rental.payment_date) {
+                    normalizedStatus = 'payment_made';
+                }
+                
+                const statusConfig = {
+                    'pending': { color: 'bg-yellow-500', text: 'AWAITING PAYMENT', icon: 'credit-card' },
+                    'payment_pending': { color: 'bg-yellow-500', text: 'AWAITING PAYMENT', icon: 'credit-card' },
+                    'payment_made': { color: 'bg-blue-500', text: 'PAYMENT MADE', icon: 'check' },
+                    'approved': { color: 'bg-green-500', text: 'APPROVED', icon: 'check-circle' },
+                    'lender_confirmed': { color: 'bg-blue-500', text: 'ITEM READY', icon: 'package-check' },
+                    'active': { color: 'bg-teal-500', text: 'IN USE', icon: 'truck' },
+                    'borrower_returned': { color: 'bg-orange-500', text: 'RETURNING', icon: 'rotate-ccw' },
+                    'return_completed': { color: 'bg-purple-500', text: 'AWAITING REFUND', icon: 'clock' },
+                    'item_transferred': { color: 'bg-purple-500', text: 'IN USE', icon: 'package' },
+                    'item_returned': { color: 'bg-indigo-500', text: 'RETURNED', icon: 'rotate-ccw' },
+                    'completed': { color: 'bg-blue-500', text: 'COMPLETED', icon: 'check-circle-2' },
+                    'cancelled': { color: 'bg-gray-500', text: 'CANCELLED', icon: 'ban' },
+                    'rejected': { color: 'bg-red-500', text: 'REJECTED', icon: 'x-circle' }
+                };
+                
+                const config = statusConfig[normalizedStatus] || { color: 'bg-yellow-500', text: 'PENDING', icon: 'clock' };
+                
+                // Check review status for completed rentals
+                let hasReviewed = false;
+                if (workflowStatus === 'completed') {
+                    try {
+                        const reviewCheck = await api.request(`/reviews/can-review/${rental.id}`);
+                        hasReviewed = reviewCheck.hasReviewed || false;
+                    } catch (error) {
+                        console.error('Error checking review status:', error);
+                    }
+                }
+                
+                const itemNameSafe = (rental.itemName || 'Item').replace(/"/g, '&quot;');
+                const primaryImage = getPrimaryImage(rental.images);
+                const progressConfig = [
+                    { key: 'lender_transfer_photo', label: 'Lender handover', icon: 'camera' },
+                    { key: 'borrower_return_photo', label: 'Borrower return', icon: 'rotate-ccw' },
+                    { key: 'lender_return_photo', label: 'Return confirmed', icon: 'shield-check' }
+                ];
+                const progressPhotos = progressConfig
+                    .map((cfg) => {
+                        const raw = rental[cfg.key];
+                        const normalized = typeof raw === 'string' ? raw.trim() : '';
+                        if (!normalized) {
+                            return null;
+                        }
+                        return { ...cfg, src: normalized };
+                    })
+                    .filter(Boolean);
+                const progressSection = progressPhotos.length
+                    ? `<div class="grid grid-cols-2 gap-2">${progressPhotos.map((photo) => `
+                            <div class="group">
+                                <a href="${photo.src}" target="_blank" rel="noopener noreferrer" class="block overflow-hidden rounded-lg border border-gray-200">
+                                    <img src="${photo.src}" alt="${photo.label}" class="w-full h-20 object-cover transition-transform duration-200 group-hover:scale-105" />
+                                </a>
+                                <p class="mt-1 text-[0.7rem] font-medium text-gray-700 flex items-center gap-1">
+                                    <i data-lucide="${photo.icon}" class="w-3 h-3"></i>
+                                    ${photo.label}
+                                </p>
+                            </div>
+                        `).join('')}</div>`
+                    : '<p class="text-xs text-gray-500 bg-gray-50 border border-dashed border-gray-200 rounded-lg p-3 text-center">No progress photos yet</p>';
+                const returnInfo = getReturnDateInfo(rental);
+                const returnValue = returnInfo.value || '—';
+
+                const rentalHTML = `
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div class="h-1 ${config.color}"></div>
+                    <div class="p-4">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <div class="md:w-56 w-full flex-shrink-0 space-y-3">
+                                <div>
+                                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2">Item Photo</span>
+                                    <a href="${primaryImage}" target="_blank" rel="noopener noreferrer" class="block rounded-lg overflow-hidden border border-gray-200">
+                                        <img src="${primaryImage}" alt="${itemNameSafe} photo" class="w-full h-32 object-cover" />
+                                    </a>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-2">Progress Photos</span>
+                                    ${progressSection}
+                                </div>
+                            </div>
+                            <div class="flex-1 flex flex-col gap-4">
+                                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-lg font-bold text-gray-900 truncate">${rental.itemName || 'Item'}</h3>
+                                        <div class="space-y-2 mt-3">
+                                            <div class="flex items-center gap-2 text-sm text-gray-600">
+                                                <i data-lucide="user" class="w-4 h-4 flex-shrink-0"></i>
+                                                <span class="font-medium">${rental.lenderName || 'Unknown'}</span>
+                                            </div>
+                                            <div class="flex items-center gap-2 text-sm text-gray-600">
+                                                <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0"></i>
+                                                <span>${new Date(rental.start_date || rental.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(rental.end_date || rental.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                            </div>
+                                            <div class="flex items-start gap-2 text-sm text-gray-600">
+                                                <i data-lucide="calendar-clock" class="w-4 h-4 flex-shrink-0 mt-0.5"></i>
+                                                <div>
+                                                    <p class="font-medium text-gray-800">${returnValue}</p>
+                                                    <p class="text-xs text-gray-500">${returnInfo.label}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-start sm:items-end gap-2">
+                                        <div class="text-left sm:text-right">
+                                            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Amount</p>
+                                            <p class="text-2xl font-bold text-gray-900">฿${parseFloat(rental.total_price || rental.totalPrice || 0).toFixed(2)}</p>
+                                        </div>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 ${config.color} text-white text-xs font-bold rounded uppercase tracking-wide">
+                                            <i data-lucide="${config.icon}" class="w-3.5 h-3.5"></i>
+                                            ${config.text}
+                                        </span>
+                                    </div>
+                                </div>
+                                ${(normalizedStatus === 'payment_pending' || normalizedStatus === 'pending') ? `
+                                    <div class="pt-3 border-t border-gray-100 flex flex-col sm:flex-row gap-2">
+                                        <button onclick="window.location.href='/payment.html?rentalId=${rental.id}'" 
+                                            class="flex-1 px-4 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors text-sm uppercase tracking-wide">
+                                            <i data-lucide="credit-card" class="w-4 h-4 inline mr-1"></i>
+                                            Pay Now
+                                        </button>
+                                        <button onclick="cancelRental(${rental.id})" 
+                                            class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors text-sm uppercase tracking-wide">
+                                            <i data-lucide="x-circle" class="w-4 h-4 inline"></i>
+                                        </button>
+                                    </div>
+                                ` : normalizedStatus === 'payment_made' ? `
+                                    <div class="pt-3 border-t border-gray-100">
+                                        <div class="text-center text-sm text-gray-600 py-2">
+                                            <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                                            Waiting for admin approval
+                                        </div>
+                                    </div>
+                                ` : workflowStatus === 'approved' ? `
+                                    <div class="pt-3 border-t border-gray-100">
+                                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                            <p class="text-sm text-green-800 font-semibold">
+                                                <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i>
+                                                Approved! Waiting for lender to transfer item
+                                            </p>
+                                        </div>
+                                    </div>
+                                ` : workflowStatus === 'lender_confirmed' ? `
+                                    <div class="pt-3 border-t border-gray-100">
+                                        <button onclick="confirmItemReceived(${rental.id})" 
+                                            class="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-sm uppercase tracking-wide">
+                                            <i data-lucide="check-square" class="w-4 h-4 inline mr-1"></i>
+                                            Confirm Received Item
+                                        </button>
+                                        <p class="text-xs text-gray-600 text-center mt-2">Click after you receive the item from lender</p>
+                                    </div>
+                                ` : workflowStatus === 'active' || workflowStatus === 'item_transferred' ? `
+                                    <div class="pt-3 border-t border-gray-100 space-y-2">
+                                        <div class="bg-teal-50 border border-teal-200 rounded-lg p-3 text-center">
+                                            <p class="text-sm text-teal-800 font-semibold">
+                                                <i data-lucide="package" class="w-4 h-4 inline mr-1"></i>
+                                                Item is in your possession. Enjoy!
+                                            </p>
+                                        </div>
+                                        <button onclick="confirmItemReturn(${rental.id})" 
+                                            class="w-full px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors text-sm uppercase tracking-wide">
+                                            <i data-lucide="rotate-ccw" class="w-4 h-4 inline mr-1"></i>
+                                            Confirm Returning Item
+                                        </button>
+                                        <p class="text-xs text-gray-600 text-center">Click when you return the item to lender</p>
+                                    </div>
+                                ` : workflowStatus === 'borrower_returned' ? `
+                                    <div class="pt-3 border-t border-gray-100">
+                                        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-3 text-center">
+                                            <p class="text-sm text-indigo-800 font-semibold">
+                                                <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                                                Waiting for lender to confirm receipt
+                                            </p>
+                                        </div>
+                                        <button onclick="window.location.href='/chat.html'" 
+                                            class="w-full px-4 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors text-sm uppercase tracking-wide mt-2">
+                                            <i data-lucide="message-circle" class="w-4 h-4 inline mr-1"></i>
+                                            Chat with Lender
+                                        </button>
+                                    </div>
+                                ` : workflowStatus === 'return_completed' ? `
+                                    <div class="pt-3 border-t border-gray-100">
+                                        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                            <p class="text-sm text-green-800 font-semibold">
+                                                <i data-lucide="check-circle-2" class="w-4 h-4 inline mr-1"></i>
+                                                Return confirmed! Waiting for admin to process deposit refund
+                                            </p>
+                                        </div>
+                                    </div>
+                                ` : workflowStatus === 'completed' ? `
+                                    <div class="pt-3 border-t border-gray-100 space-y-2">
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                                            <p class="text-sm text-blue-800 font-semibold">
+                                                <i data-lucide="check-circle-2" class="w-4 h-4 inline mr-1"></i>
+                                                Rental Completed
+                                            </p>
+                                        </div>
+                                        ${hasReviewed ? `
+                                            <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                                <p class="text-sm text-green-800 font-semibold">
+                                                    <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i>
+                                                    Review Completed ✓
+                                                </p>
+                                                <p class="text-xs text-green-600 mt-1">Thank you for your feedback!</p>
+                                            </div>
+                                        ` : `
+                                            <button onclick="openReviewModal(${rental.id}, ${rental.lender_id}, '${rental.lenderName}', '${rental.itemName}')" 
+                                                class="w-full px-4 py-2 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors text-sm uppercase tracking-wide flex items-center justify-center gap-2">
+                                                <i data-lucide="star" class="w-4 h-4"></i>
+                                                Review Lender
+                                            </button>
+                                        `}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                
+                borrowingList.innerHTML += rentalHTML;
+            }
+            
+            lucide.createIcons();
+        }
+
+        // Cancel rental request
+        async function cancelRental(rentalId) {
+            const result = await Swal.fire({
+                title: 'Cancel Rental Request?',
+                text: "Are you sure you want to cancel this rental request?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, cancel it',
+                cancelButtonText: 'No, keep it'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    await api.updateRentalStatus(rentalId, 'cancelled');
+                    Swal.fire('Cancelled!', 'Your rental request has been cancelled.', 'success');
+                    loadBorrowing(); // Reload the list
+                } catch (error) {
+                    console.error('Error cancelling rental:', error);
+                    Swal.fire('Error', 'Failed to cancel rental request', 'error');
+                }
+            }
+        }
+
+        // Compress image helper function
+        function compressImage(file, maxWidth = 1200, quality = 0.8) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Resize if needed
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Convert to base64 with compression
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Borrower confirms receiving item
+        async function confirmItemReceived(rentalId) {
+            const result = await Swal.fire({
+                title: 'Confirm Received Item?',
+                html: `
+                    <p class="text-gray-700 mb-4">Have you received the item from the lender?</p>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-left mb-4">
+                        <p class="text-sm text-blue-800">
+                            <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                            <strong>Important:</strong> Upload a clear photo of the item in your possession before you confirm.
+                        </p>
+                    </div>
+                    <div class="text-left">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Handover Photo (Required)
+                        </label>
+                        <input type="file" id="borrowerReceivePhotoInput" accept="image/*" class="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-md file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-50 file:text-blue-700
+                            hover:file:bg-blue-100" />
+                        <p class="text-xs text-gray-500 mt-2">Supported formats: JPG or PNG. Max size 10MB.</p>
+                        <div id="borrowerReceivePhotoPreview" class="mt-3 hidden">
+                            <img id="borrowerReceivePhotoImg" class="w-full rounded-lg border border-gray-200" />
+                        </div>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Received',
+                cancelButtonText: 'Not Yet',
+                allowOutsideClick: () => !Swal.isLoading(),
+                showLoaderOnConfirm: true,
+                didOpen: () => {
+                    const input = document.getElementById('borrowerReceivePhotoInput');
+                    const preview = document.getElementById('borrowerReceivePhotoPreview');
+                    const img = document.getElementById('borrowerReceivePhotoImg');
+
+                    if (input) {
+                        input.addEventListener('change', (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) {
+                                preview.classList.add('hidden');
+                                img.src = '';
+                                return;
+                            }
+
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                img.src = event.target?.result || '';
+                                preview.classList.remove('hidden');
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }
+                },
+                preConfirm: async () => {
+                    const input = document.getElementById('borrowerReceivePhotoInput');
+                    const file = input?.files?.[0];
+
+                    if (!file) {
+                        Swal.showValidationMessage('Please upload a photo showing the item you received.');
+                        return false;
+                    }
+
+                    if (!file.type.startsWith('image/')) {
+                        Swal.showValidationMessage('The uploaded file must be an image.');
+                        return false;
+                    }
+
+                    const maxBytes = 10 * 1024 * 1024;
+                    if (file.size > maxBytes) {
+                        Swal.showValidationMessage('Image must be smaller than 10MB.');
+                        return false;
+                    }
+
+                    const compressed = await compressImage(file);
+                    return compressed;
+                }
+            });
+
+            if (result.isConfirmed && result.value) {
+                try {
+                    const response = await api.request('/rentals/confirm-received', {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                            rental_id: rentalId,
+                            borrower_receive_photo: result.value
+                        })
+                    });
+
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Item receipt confirmed. The rental is now active. Enjoy!',
+                            icon: 'success',
+                            confirmButtonColor: '#0d9488'
+                        });
+                        loadBorrowing();
+                    }
+                } catch (error) {
+                    console.error('Error confirming receipt:', error);
+                    Swal.fire('Error', error.message || 'Failed to confirm receipt', 'error');
+                }
+            }
+        }
+
+        // Borrower confirms returning item
+        async function confirmItemReturn(rentalId) {
+            const result = await Swal.fire({
+                title: 'Confirm Returning Item?',
+                html: `
+                    <p class="text-gray-700 mb-4">Are you returning the item to the lender?</p>
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 text-left mb-4">
+                        <p class="text-sm text-orange-800">
+                            <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                            <strong>Important:</strong> Click this when you are returning the item to the lender. Your deposit will be refunded after the lender confirms receipt.
+                        </p>
+                    </div>
+                    <div class="text-left">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Upload Photo of Item (Optional)
+                        </label>
+                        <input type="file" id="borrowerReturnPhotoInput" accept="image/*" class="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-md file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-orange-50 file:text-orange-700
+                            hover:file:bg-orange-100"/>
+                        <div id="borrowerReturnPhotoPreview" class="mt-3 hidden">
+                            <img id="borrowerReturnPhotoImg" class="w-full rounded-lg border border-gray-200" />
+                        </div>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ea580c',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Returning Now',
+                cancelButtonText: 'Not Yet',
+                didOpen: () => {
+                    const input = document.getElementById('borrowerReturnPhotoInput');
+                    const preview = document.getElementById('borrowerReturnPhotoPreview');
+                    const img = document.getElementById('borrowerReturnPhotoImg');
+                    
+                    input.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const compressed = await compressImage(file);
+                            img.src = compressed;
+                            preview.classList.remove('hidden');
+                        }
+                    });
+                }
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const input = document.getElementById('borrowerReturnPhotoInput');
+                    let borrowerReturnPhoto = null;
+
+                    if (input && input.files && input.files[0]) {
+                        const file = input.files[0];
+                        console.log('Original file size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+                        borrowerReturnPhoto = await compressImage(file);
+                        console.log('Compressed size:', (borrowerReturnPhoto.length / 1024 / 1024).toFixed(2), 'MB');
+                    }
+
+                    const response = await api.request('/rentals/confirm-return', {
+                        method: 'POST',
+                        body: JSON.stringify({ 
+                            rental_id: rentalId,
+                            borrower_return_photo: borrowerReturnPhoto
+                        })
+                    });
+
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Return confirmed! Lender will be notified. Your deposit will be refunded after lender confirms receipt.',
+                            icon: 'success',
+                            confirmButtonColor: '#0d9488'
+                        });
+                        loadBorrowing();
+                    }
+                } catch (error) {
+                    console.error('Error confirming return:', error);
+                    Swal.fire('Error', error.message || 'Failed to confirm return', 'error');
+                }
+            }
+        }
+
+        // Lock/unlock lender features based on verification
+        function updateLenderFeatures(isVerified) {
+            const lenderFeatures = document.querySelectorAll('.lender-feature');
+            
+            lenderFeatures.forEach(link => {
+                if (isVerified) {
+                    // Unlock features
+                    link.setAttribute('data-locked', 'false');
+                    link.style.opacity = '1';
+                    link.style.cursor = 'pointer';
+                    
+                    // Restore original hrefs
+                    if (link.id === 'nav-additem') {
+                        link.href = '/list_new_item.html';
+                    } else if (link.id === 'nav-myitems') {
+                        link.href = '/my_items.html';
+                    } else if (link.id === 'nav-lending') {
+                        link.href = '/lending.html';
+                    }
+                    
+                    // Remove click handler
+                    link.onclick = null;
+                } else {
+                    // Lock features
+                    link.setAttribute('data-locked', 'true');
+                    link.href = '#';
+                    
+                    // Add click handler to show message
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Verification Required',
+                            text: 'Please verify as a lender to access this feature. Go to Dashboard and click "Verify Account" to get verified.',
+                            confirmButtonColor: '#0d9488'
+                        });
+                    };
+                }
+            });
+            
+            lucide.createIcons();
+        }
+
+        // Open review modal
+        async function openReviewModal(rentalId, revieweeId, revieweeName, itemName) {
+            // Check if already reviewed
+            try {
+                const checkResponse = await api.request(`/reviews/can-review/${rentalId}`);
+                
+                if (checkResponse.hasReviewed) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Already Reviewed',
+                        text: 'You have already submitted a review for this rental.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking review status:', error);
+            }
+
+            const { value: formValues } = await Swal.fire({
+                title: `Review ${revieweeName}`,
+                html: `
+                    <div class="text-left space-y-4">
+                        <div class="bg-gray-50 p-3 rounded-lg mb-4">
+                            <p class="text-sm text-gray-600">Rental Item: <strong>${itemName}</strong></p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Rating</label>
+                            <div class="flex justify-center gap-2 py-2" id="starRating">
+                                ${[1, 2, 3, 4, 5].map(star => `
+                                    <button type="button" onclick="setRating(${star})" 
+                                        class="star-btn text-3xl text-gray-300 hover:text-amber-400 transition-colors" 
+                                        data-star="${star}">★</button>
+                                `).join('')}
+                            </div>
+                            <input type="hidden" id="ratingValue" value="0">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Your Review</label>
+                            <textarea id="reviewComment" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent" 
+                                rows="4" 
+                                placeholder="Share your experience..."></textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Submit Review',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#0d9488',
+                cancelButtonColor: '#6b7280',
+                width: '600px',
+                preConfirm: () => {
+                    const rating = document.getElementById('ratingValue').value;
+                    const comment = document.getElementById('reviewComment').value;
+                    
+                    if (!rating || rating == 0) {
+                        Swal.showValidationMessage('Please select a rating');
+                        return false;
+                    }
+                    
+                    if (!comment.trim()) {
+                        Swal.showValidationMessage('Please write a review');
+                        return false;
+                    }
+                    
+                    return { rating: parseInt(rating), comment: comment.trim() };
+                },
+                didOpen: () => {
+                    // Initialize star rating
+                    window.setRating = function(star) {
+                        document.getElementById('ratingValue').value = star;
+                        const stars = document.querySelectorAll('.star-btn');
+                        stars.forEach((btn, index) => {
+                            if (index < star) {
+                                btn.classList.remove('text-gray-300');
+                                btn.classList.add('text-amber-400');
+                            } else {
+                                btn.classList.remove('text-amber-400');
+                                btn.classList.add('text-gray-300');
+                            }
+                        });
+                    };
+                }
+            });
+
+            if (formValues) {
+                try {
+                    const response = await api.request('/reviews', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            rental_id: rentalId,
+                            reviewee_id: revieweeId,
+                            rating: formValues.rating,
+                            comment: formValues.comment
+                        })
+                    });
+
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Review Submitted!',
+                            text: 'Thank you for your feedback.',
+                            confirmButtonColor: '#0d9488'
+                        });
+                        loadBorrowing(); // Reload to update UI
+                    }
+                } catch (error) {
+                    console.error('Error submitting review:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'Failed to submit review. Please try again.',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            }
+        }
+
+        // Load and display notifications badge
+        async function loadNotifications() {
+            try {
+                const response = await api.request('/notifications/unread/count');
+                const count = response.count || 0;
+                
+                const badge = document.getElementById('notificationBadge');
+                if (count > 0) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        async function showNotificationsModal() {
+            try {
+                const response = await api.request('/notifications');
+                const notifications = response.data || response || [];
+
+                if (notifications.length === 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Notifications',
+                        text: 'You have no notifications at this time.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return;
+                }
+
+                const notificationList = notifications.map(notification => `
+                    <div class="border-b border-gray-200 pb-3 mb-3 text-left ${notification.is_read ? 'opacity-60' : ''}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900">${notification.title}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                                <p class="text-xs text-gray-400 mt-1">${new Date(notification.created_at).toLocaleDateString()}</p>
+                            </div>
+                            ${!notification.is_read ? '<span class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-1"></span>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                Swal.fire({
+                    title: 'Notifications',
+                    html: `
+                        <div class="max-h-96 overflow-y-auto">
+                            ${notificationList}
+                        </div>
+                    `,
+                    width: '600px',
+                    confirmButtonText: 'Close',
+                    confirmButtonColor: '#0d9488',
+                    didOpen: () => {
+                        // Mark all as read
+                        api.request('/notifications/mark-read', { method: 'PUT' }).then(() => {
+                            loadNotifications();
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error showing notifications:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load notifications',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            
+            // Refresh user data to get latest verification status
+            try {
+                const response = await api.getProfile();
+                if (response.success && response.data) {
+                    currentUser = response.data;
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                }
+            } catch (error) {
+                console.error('Error refreshing user data:', error);
+            }
+            
+            // Check bank account AFTER user data is refreshed
+            const hasBank = checkBankAccountInfo();
+            if (!hasBank) return; // Stop if no bank account
+            
+            // Check user verification status - unlock all features if verified
+            const isVerifiedLender = currentUser && (currentUser.is_verified === 1 || currentUser.verification_status === 'verified');
+            
+            updateLenderFeatures(isVerifiedLender);
+            
+            await loadBorrowing();
+            await loadNotifications();
+
+            // Refresh notifications every 30 seconds
+            setInterval(loadNotifications, 30000);
+        });
+    </script>
+</body>
+</html>

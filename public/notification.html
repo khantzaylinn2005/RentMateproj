@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            padding: 1.5rem 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .sidebar-logo i {
+            width: 32px;
+            height: 32px;
+        }
+
+        .sidebar-logo span {
+            font-size: 1.375rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-nav {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.875rem 0.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.125rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .sidebar-user-menu a {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-user-menu a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        .notification-item {
+            transition: all 0.2s;
+        }
+
+        .notification-item:hover {
+            transform: translateX(4px);
+        }
+
+        .notification-unread {
+            background: linear-gradient(90deg, rgba(13, 148, 136, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
+            border-left: 4px solid #0d9488;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i data-lucide="tent" class="w-8 h-8"></i>
+            <span class="text-xl font-bold">RentMate</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/browse_items.html" class="sidebar-link">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span>Browse Items</span>
+            </a>
+            <a href="/dashboard.html" class="sidebar-link">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/list_new_item.html" class="sidebar-link">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>List New Item</span>
+            </a>
+            <a href="/my_items.html" class="sidebar-link">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span>My Items</span>
+            </a>
+            <a href="/borrowing.html" class="sidebar-link">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span>Borrowing</span>
+            </a>
+            <a href="/lending.html" class="sidebar-link">
+                <i data-lucide="truck" class="w-5 h-5"></i>
+                <span>Lending</span>
+            </a>
+            <a href="/chat.html" class="sidebar-link">
+                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/notification.html" class="sidebar-link active">
+                <div class="relative inline-block">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="notificationBadge" class="absolute -top-1 -right-1 hidden bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"></span>
+                </div>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="sidebarUserName" class="font-semibold text-sm">User</div>
+                    <div class="text-xs text-white/70" id="userRole">Member</div>
+                </div>
+            </div>
+            <div class="sidebar-user-menu">
+                <a href="/profile.html">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Profile
+                </a>
+                <a href="/support.html">
+                    <i data-lucide="life-buoy" class="w-4 h-4 inline mr-2"></i>
+                    Customer Support
+                </a>
+                <a href="#" onclick="handleLogout()">
+                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container mx-auto px-6 py-6">
+            <!-- Header Section -->
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 uppercase tracking-wide">Notifications</h1>
+                    <p class="text-gray-600 text-sm mt-1">Stay updated with your rental activities</p>
+                </div>
+                <button id="markAllReadBtn" onclick="markAllAsRead()" class="btn-primary text-sm">
+                    <i data-lucide="check-check" class="w-4 h-4 inline mr-1"></i>
+                    Mark All as Read
+                </button>
+            </div>
+
+            <!-- Notifications List -->
+            <div id="notificationsList" class="space-y-3">
+                <!-- Notifications will be loaded here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden">
+                <div class="bg-white p-12 rounded-lg shadow-sm border border-gray-200 text-center">
+                    <i data-lucide="bell-off" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">No Notifications</h3>
+                    <p class="text-gray-600">You're all caught up! No new notifications at the moment.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script src="/dashboard.js"></script>
+    <script>
+        // Check authentication
+        if (!currentUser) {
+            window.location.href = '/login.html';
+        }
+
+        // Update sidebar user info
+        if (currentUser) {
+            document.getElementById('sidebarUserName').textContent = currentUser.name || 'User';
+            const avatar = document.getElementById('userAvatar');
+            if (currentUser.name) {
+                avatar.textContent = currentUser.name.charAt(0).toUpperCase();
+            }
+        }
+
+        // Load notifications
+        async function loadNotifications() {
+            try {
+                const response = await api.request('/notifications');
+                const notifications = response.data || response || [];
+
+                const notificationsList = document.getElementById('notificationsList');
+                const emptyState = document.getElementById('emptyState');
+
+                if (notifications.length === 0) {
+                    notificationsList.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                notificationsList.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+
+                notificationsList.innerHTML = notifications.map(notification => {
+                    const isUnread = !notification.is_read;
+                    const date = new Date(notification.created_at);
+                    const timeAgo = getTimeAgo(date);
+                    
+                    // Determine icon and color based on notification type
+                    let icon = 'bell';
+                    let iconColor = 'text-primary';
+                    
+                    if (notification.type === 'review_pending') {
+                        icon = 'star';
+                        iconColor = 'text-amber-600';
+                    } else if (notification.type === 'rental_approved') {
+                        icon = 'check-circle';
+                        iconColor = 'text-green-600';
+                    } else if (notification.type === 'rental_rejected') {
+                        icon = 'x-circle';
+                        iconColor = 'text-red-600';
+                    } else if (notification.type === 'payment_received') {
+                        icon = 'dollar-sign';
+                        iconColor = 'text-blue-600';
+                    } else if (notification.type === 'deposit_refunded' || notification.type === 'refund_completed') {
+                        icon = 'banknote';
+                        iconColor = 'text-green-600';
+                    }
+
+                    // Check if we need to show refund slip preview
+                    const showRefundPreview = (notification.type === 'deposit_refunded' || notification.type === 'refund_completed' || notification.type === 'rental_rejected') && notification.rental_id;
+                    const previewBorder = notification.type === 'rental_rejected' ? 'border-red-200 hover:border-red-400' : 'border-green-200 hover:border-green-400';
+
+                    return `
+                        <div class="notification-item ${isUnread ? 'notification-unread' : 'bg-white'} rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all">
+                            <div class="flex items-start gap-4">
+                                <!-- Icon -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center ${iconColor}">
+                                        <i data-lucide="${icon}" class="w-6 h-6"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Content -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex-1">
+                                            <h3 class="text-base font-bold text-gray-900 ${isUnread ? 'text-primary' : ''}">
+                                                ${notification.title}
+                                            </h3>
+                                            <p class="text-sm text-gray-700 mt-1 leading-relaxed">
+                                                ${notification.message}
+                                            </p>
+                                            
+                                            <!-- Refund Slip Preview (show after loading) -->
+                                            ${showRefundPreview ? `
+                                                <div id="refund-preview-${notification.id}" class="mt-3 hidden">
+                                                    <div class="inline-block border-2 ${previewBorder} rounded-lg overflow-hidden bg-gray-50 cursor-pointer transition-colors" onclick="viewRefundSlip(${notification.rental_id}, '${notification.type}')">
+                                                        <img id="refund-img-${notification.id}" alt="Refund Slip Preview" class="h-24 w-auto object-contain">
+                                                    </div>
+                                                    <p class="text-xs text-gray-500 mt-1">Click image to view full size</p>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            <div class="flex items-center gap-3 mt-2">
+                                                <span class="text-xs text-gray-500">
+                                                    <i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>
+                                                    ${timeAgo}
+                                                </span>
+                                                ${isUnread ? '<span class="text-xs font-semibold text-primary">• New</span>' : ''}
+                                            </div>
+                                        </div>
+                                        ${isUnread ? '<div class="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1"></div>' : ''}
+                                    </div>
+                                    
+                                    <!-- Actions -->
+                                    <div class="flex items-center gap-2 mt-3">
+                                        ${notification.type === 'review_pending' ? `
+                                            <button onclick="goToRentalPage('${notification.type}')" class="text-xs px-3 py-1.5 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors font-medium">
+                                                <i data-lucide="star" class="w-3 h-3 inline mr-1"></i>
+                                                Write Review
+                                            </button>
+                                        ` : ''}
+                                        ${notification.type === 'payment_received' && notification.rental_id ? `
+                                            <button onclick="viewPaymentSlip(${notification.rental_id})" class="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium">
+                                                <i data-lucide="file-image" class="w-3 h-3 inline mr-1"></i>
+                                                View Payment Slip
+                                            </button>
+                                        ` : ''}
+                                        ${(notification.type === 'deposit_refunded' || notification.type === 'refund_completed' || notification.type === 'rental_rejected') && notification.rental_id ? `
+                                            <button onclick="viewRefundSlip(${notification.rental_id}, '${notification.type}')" class="text-xs px-3 py-1.5 ${notification.type === 'rental_rejected' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded-md transition-colors font-medium">
+                                                <i data-lucide="receipt" class="w-3 h-3 inline mr-1"></i>
+                                                View Refund Slip
+                                            </button>
+                                        ` : ''}
+                                        ${isUnread ? `
+                                            <button onclick="markAsRead(${notification.id})" class="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors font-medium">
+                                                <i data-lucide="check" class="w-3 h-3 inline mr-1"></i>
+                                                Mark as Read
+                                            </button>
+                                        ` : ''}
+                                        <button onclick="deleteNotification(${notification.id})" class="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-red-100 hover:text-red-600 transition-colors font-medium">
+                                            <i data-lucide="trash-2" class="w-3 h-3 inline mr-1"></i>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                lucide.createIcons();
+                
+                // Load refund slip images for refund notifications
+                notifications.forEach(notification => {
+                    if ((notification.type === 'deposit_refunded' || notification.type === 'refund_completed' || notification.type === 'rental_rejected') && notification.rental_id) {
+                        loadRefundSlipPreview(notification.rental_id, notification.type, notification.id);
+                    }
+                });
+                
+                updateBadge();
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load notifications',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // Load refund slip preview image
+        async function loadRefundSlipPreview(rentalId, notificationType, notificationId) {
+            try {
+                const response = await api.request(`/rentals/progress/${rentalId}`);
+                const rental = response.data && response.data.rental ? response.data.rental : response;
+
+                if (!rental) {
+                    return;
+                }
+
+                let slipSource = null;
+                if (notificationType === 'rental_rejected') {
+                    slipSource = rental.admin_reject_refund_slip || null;
+                }
+
+                if (!slipSource) {
+                    slipSource = rental.admin_refund_slip || null;
+                }
+
+                if (slipSource) {
+                    const previewDiv = document.getElementById(`refund-preview-${notificationId}`);
+                    const imgElement = document.getElementById(`refund-img-${notificationId}`);
+
+                    if (previewDiv && imgElement) {
+                        imgElement.src = slipSource;
+                        previewDiv.classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error(`Error loading refund slip preview for rental ${rentalId}:`, error);
+            }
+        }
+
+        // Update notification badge
+        async function updateBadge() {
+            try {
+                const response = await api.request('/notifications/unread/count');
+                const count = response.count || 0;
+                
+                const badge = document.getElementById('notificationBadge');
+                if (count > 0) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error updating badge:', error);
+            }
+        }
+
+        // Mark single notification as read
+        async function markAsRead(notificationId) {
+            try {
+                await api.request(`/notifications/${notificationId}/read`, { method: 'PUT' });
+                await loadNotifications();
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        // Mark all notifications as read
+        async function markAllAsRead() {
+            try {
+                await api.request('/notifications/mark-read', { method: 'PUT' });
+                await loadNotifications();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Done!',
+                    text: 'All notifications marked as read',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } catch (error) {
+                console.error('Error marking all as read:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to mark notifications as read',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // Delete notification
+        async function deleteNotification(notificationId) {
+            try {
+                const result = await Swal.fire({
+                    title: 'Delete Notification?',
+                    text: 'This action cannot be undone.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, delete it'
+                });
+
+                if (result.isConfirmed) {
+                    await api.request(`/notifications/${notificationId}`, { method: 'DELETE' });
+                    await loadNotifications();
+                }
+            } catch (error) {
+                console.error('Error deleting notification:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to delete notification',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // View payment slip from notification
+        async function viewPaymentSlip(rentalId) {
+            try {
+                const response = await api.request(`/rentals/progress/${rentalId}`);
+                
+                // Extract rental data from nested response
+                const rental = response.data ? response.data.rental : response;
+
+                // Show admin payment slip to lender instead of borrower payment slip
+                if (!rental || !rental.admin_lender_payment_slip) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Admin Payment Slip',
+                        text: 'Admin has not uploaded the payment slip showing transfer to lender yet.',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                    return;
+                }
+
+                // Display admin payment slip in modal
+                Swal.fire({
+                    title: 'Admin Payment Slip to Lender',
+                    html: `
+                        <div class="space-y-3 text-left">
+                            <div class="text-sm text-gray-600">
+                                <p><strong>Payment Type:</strong> Lender Fee Transfer</p>
+                                <p><strong>Status:</strong> <span class="text-green-600 font-medium">Completed by Admin</span></p>
+                            </div>
+                            <div class="mt-4 border rounded-lg overflow-hidden">
+                                <img src="${rental.admin_lender_payment_slip}" alt="Admin Payment Slip" class="w-full h-auto">
+                            </div>
+                            <p class="text-xs text-gray-500 text-center mt-2">Admin's proof of transfer to lender</p>
+                        </div>
+                    `,
+                    width: '600px',
+                    confirmButtonText: 'Close',
+                    confirmButtonColor: '#3b82f6'
+                });
+            } catch (error) {
+                console.error('Error loading payment slip:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load payment slip. Please try again.',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        async function viewRefundSlip(rentalId, notificationType = 'deposit_refunded') {
+            try {
+                if (!rentalId && rentalId !== 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Unavailable',
+                        text: 'This notification is missing rental information. Please contact support if the issue persists.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return;
+                }
+
+                const response = await api.request(`/rentals/progress/${rentalId}`);
+
+                // Extract rental data from nested response
+                const rental = response.data && response.data.rental ? response.data.rental : response;
+
+                if (!rental) {
+                    throw new Error('Rental data unavailable');
+                }
+
+                const isRejection = notificationType === 'rental_rejected';
+                const slipSource = isRejection
+                    ? rental.admin_reject_refund_slip
+                    : rental.admin_refund_slip;
+
+                if (!slipSource) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No Admin Refund Slip',
+                        text: isRejection
+                            ? 'Admin has not attached a refund slip for this rejection yet.'
+                            : 'Admin has not uploaded the refund slip showing deposit transfer to borrower yet.',
+                        confirmButtonColor: isRejection ? '#ef4444' : '#10b981'
+                    });
+                    return;
+                }
+
+                const depositAmountRaw =
+                    (rental.admin_refund_amount !== undefined && rental.admin_refund_amount !== null)
+                        ? rental.admin_refund_amount
+                        : (rental.deposit_amount !== undefined && rental.deposit_amount !== null)
+                            ? rental.deposit_amount
+                            : (parseFloat(rental.total_price || 0) * 0.2);
+                const depositAmount = Number(depositAmountRaw) || 0;
+                const rejectionReason = rental.rejection_reason || 'No reason provided';
+
+                Swal.fire({
+                    title: isRejection ? 'Refund Proof (Request Rejected)' : 'Admin Refund Slip to Borrower',
+                    html: `
+                        <div class="space-y-3 text-left">
+                            <div class="text-sm text-gray-600">
+                                ${isRejection ? `
+                                    <p><strong>Status:</strong> <span class="text-red-600 font-medium">Refund issued after rejection</span></p>
+                                    <p><strong>Rejection Reason:</strong> ${rejectionReason}</p>
+                                    <p><strong>Processed By:</strong> Admin team</p>
+                                    <p><strong>Processed At:</strong> ${rental.rejected_at ? new Date(rental.rejected_at).toLocaleString() : 'N/A'}</p>
+                                ` : `
+                                    <p><strong>Deposit Amount:</strong> ฿${depositAmount.toFixed(2)}</p>
+                                    <p><strong>Status:</strong> <span class="text-green-600 font-medium">Refunded by Admin</span></p>
+                                    <p><strong>Refunded Date:</strong> ${rental.deposit_refunded_at ? new Date(rental.deposit_refunded_at).toLocaleString() : 'N/A'}</p>
+                                `}
+                            </div>
+                            <div class="mt-4 border rounded-lg overflow-hidden">
+                                <img src="${slipSource}" alt="Admin Refund Slip" class="w-full h-auto">
+                            </div>
+                            <p class="text-xs text-gray-500 text-center mt-2">${isRejection ? 'Proof of refund back to borrower after rejection' : "Admin's proof of deposit refund transfer"}</p>
+                        </div>
+                    `,
+                    width: '600px',
+                    confirmButtonText: 'Close',
+                    confirmButtonColor: isRejection ? '#ef4444' : '#10b981'
+                });
+            } catch (error) {
+                console.error('Error loading refund slip:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error?.message || 'Failed to load refund slip. Please try again.',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // Navigate to appropriate page based on notification type
+        function goToRentalPage(type) {
+            if (type === 'review_pending') {
+                // Check if user is borrower or lender based on current page context
+                // For now, redirect to borrowing page
+                window.location.href = '/borrowing.html';
+            }
+        }
+
+        // Time ago helper function
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + ' year' + (Math.floor(interval) > 1 ? 's' : '') + ' ago';
+            
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + ' month' + (Math.floor(interval) > 1 ? 's' : '') + ' ago';
+            
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + ' day' + (Math.floor(interval) > 1 ? 's' : '') + ' ago';
+            
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + ' hour' + (Math.floor(interval) > 1 ? 's' : '') + ' ago';
+            
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + ' minute' + (Math.floor(interval) > 1 ? 's' : '') + ' ago';
+            
+            return 'Just now';
+        }
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await loadNotifications();
+
+            // Refresh notifications every 30 seconds
+            setInterval(loadNotifications, 30000);
+        });
+    </script>
+</body>
+</html>

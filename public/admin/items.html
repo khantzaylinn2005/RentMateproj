@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items Management - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Admin Navigation Tabs */
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .admin-tab {
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .admin-tab:hover {
+            background-color: #f0fdfa;
+        }
+
+        .admin-tab.active {
+            background-color: #0d9488;
+            color: white;
+        }
+
+        /* Responsive Navigation */
+        @media (max-width: 768px) {
+            .admin-tabs {
+                flex-direction: column;
+            }
+            
+            .admin-tab {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .top-nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-7 h-7 text-yellow-500"></i>
+                    <span class="text-xl font-bold text-gray-800">RentMate Admin</span>
+                </div>
+                <div class="flex items-center space-x-6 top-nav-links">
+                    <a href="/index.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="home" class="w-4 h-4 inline mr-1"></i>
+                        Home
+                    </a>
+                    <a href="/dashboard.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-1"></i>
+                        Dashboard
+                    </a>
+                    <button onclick="handleLogout()" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i>
+                        Logout
+                    </button>
+                </div>
+                <button class="mobile-menu-btn text-gray-700" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Admin Tabs -->
+        <div class="bg-white rounded-lg shadow mb-8 p-4">
+            <div class="admin-tabs">
+                <button onclick="window.location.href='/admin.html'" class="admin-tab">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Users</span>
+                </button>
+                <button onclick="window.location.href='/admin/items.html'" class="admin-tab active">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>Items</span>
+                </button>
+                <button onclick="window.location.href='/admin/rentals.html'" class="admin-tab">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    <span>Rentals</span>
+                </button>
+                <button onclick="window.location.href='/admin/rental_management.html'" class="admin-tab">
+                    <i data-lucide="workflow" class="w-4 h-4"></i>
+                    <span>Rental Workflow</span>
+                </button>
+                <button onclick="window.location.href='/admin/verification.html'" class="admin-tab">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Verifications</span>
+                </button>
+                <button onclick="window.location.href='/admin/item_approval.html'" class="admin-tab">
+                    <i data-lucide="package-check" class="w-4 h-4"></i>
+                    <span>Item Approvals</span>
+                </button>
+                <button onclick="window.location.href='/admin/banking.html'" class="admin-tab">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                    <span>Banking</span>
+                </button>
+                <button onclick="window.location.href='/admin/statistics.html'" class="admin-tab">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                    <span>Statistics</span>
+                </button>
+                <button onclick="window.location.href='/admin/support.html'" class="admin-tab">
+                    <i data-lucide="life-buoy" class="w-4 h-4"></i>
+                    <span>Customer Support</span>
+                </button>
+            </div>
+        </div>
+
+    <!-- Main Content -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Items Management</h2>
+
+        <!-- Filters & Search -->
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Search -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Items</label>
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search by name, category, or owner..." 
+                            class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-3 top-2.5"></i>
+                    </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select id="categoryFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Categories</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="tools">Tools</option>
+                        <option value="sports">Sports</option>
+                        <option value="furniture">Furniture</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="books">Books</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="statusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">All Status</option>
+                        <option value="available">Available</option>
+                        <option value="rented">Rented</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Filter Actions -->
+            <div class="flex gap-3 mt-4">
+                <button onclick="applyFilters()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                    <i data-lucide="filter" class="w-4 h-4"></i>
+                    Apply Filters
+                </button>
+                <button onclick="resetFilters()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Total Items</p>
+                    <p id="totalItems" class="text-2xl font-bold text-gray-900">0</p>
+                </div>
+                <i data-lucide="package" class="w-10 h-10 text-blue-500"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Available</p>
+                    <p id="availableItems" class="text-2xl font-bold text-green-600">0</p>
+                </div>
+                <i data-lucide="check-circle" class="w-10 h-10 text-green-500"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Rented</p>
+                    <p id="rentedItems" class="text-2xl font-bold text-orange-600">0</p>
+                </div>
+                <i data-lucide="clock" class="w-10 h-10 text-orange-500"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Avg Rating</p>
+                    <p id="avgRating" class="text-2xl font-bold text-yellow-600">0.0</p>
+                </div>
+                <i data-lucide="star" class="w-10 h-10 text-yellow-500"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Grid -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div id="itemsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Items will be loaded here -->
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p class="mt-4 text-gray-600">Loading items...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-12">
+            <i data-lucide="inbox" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+            <p class="text-xl text-gray-600">No items found</p>
+            <p class="text-gray-500 mt-2">Try adjusting your filters</p>
+        </div>
+    </div>
+    </div>
+
+    <script src="../app.js"></script>
+    <script>
+        let allItems = [];
+        let filteredItems = [];
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        async function loadItems() {
+            try {
+                document.getElementById('loadingState').classList.remove('hidden');
+                document.getElementById('emptyState').classList.add('hidden');
+                document.getElementById('itemsContainer').innerHTML = '';
+
+                const response = await api.getItems();
+                console.log('API Response:', response);
+                
+                // Handle different response formats
+                if (Array.isArray(response)) {
+                    allItems = response;
+                } else if (response && Array.isArray(response.items)) {
+                    allItems = response.items;
+                } else if (response && response.data && Array.isArray(response.data)) {
+                    allItems = response.data;
+                } else {
+                    allItems = [];
+                }
+                
+                console.log('All Items:', allItems);
+                if (allItems.length > 0) {
+                    console.log('First Item:', allItems[0]);
+                }
+                
+                filteredItems = [...allItems];
+
+                updateStats();
+                displayItems(filteredItems);
+
+            } catch (error) {
+                console.error('Error loading items:', error);
+                Swal.fire('Error', 'Failed to load items', 'error');
+                allItems = [];
+                filteredItems = [];
+            } finally {
+                document.getElementById('loadingState').classList.add('hidden');
+                lucide.createIcons();
+            }
+        }
+
+        function updateStats() {
+            const total = allItems.length;
+            const available = allItems.filter(item => item.status === 'available' || item.isAvailable).length;
+            const rented = total - available;
+            const avgRating = allItems.length > 0 
+                ? (allItems.reduce((sum, item) => sum + (Number(item.rating) || 0), 0) / allItems.length).toFixed(1)
+                : '0.0';
+
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('availableItems').textContent = available;
+            document.getElementById('rentedItems').textContent = rented;
+            document.getElementById('avgRating').textContent = avgRating;
+        }
+
+        function displayItems(items) {
+            const container = document.getElementById('itemsContainer');
+            
+            if (!items || items.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+                container.innerHTML = '';
+                return;
+            }
+
+            document.getElementById('emptyState').classList.add('hidden');
+            
+            container.innerHTML = items.map(item => {
+                // Get photo URL - check multiple possible field names
+                let photoUrl = null;
+                
+                // Parse images if it's a JSON string
+                let itemImages = item.images;
+                if (typeof itemImages === 'string') {
+                    try {
+                        itemImages = JSON.parse(itemImages);
+                    } catch (e) {
+                        itemImages = null;
+                    }
+                }
+                
+                // Parse photos if it's a JSON string
+                let itemPhotos = item.photos;
+                if (typeof itemPhotos === 'string') {
+                    try {
+                        itemPhotos = JSON.parse(itemPhotos);
+                    } catch (e) {
+                        itemPhotos = null;
+                    }
+                }
+                
+                // Check all possible photo sources
+                if (itemImages && Array.isArray(itemImages) && itemImages.length > 0) {
+                    photoUrl = itemImages[0];
+                } else if (itemPhotos && Array.isArray(itemPhotos) && itemPhotos.length > 0) {
+                    photoUrl = itemPhotos[0];
+                } else if (item.photo) {
+                    photoUrl = item.photo;
+                } else if (item.image) {
+                    photoUrl = item.image;
+                } else if (item.photo_url) {
+                    photoUrl = item.photo_url;
+                }
+
+                return `
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                    <!-- Circular Image -->
+                    <div class="relative p-6 bg-gray-50">
+                        <div class="w-32 h-32 mx-auto rounded-full overflow-hidden bg-gray-200 shadow-lg ring-4 ring-white">
+                            ${photoUrl 
+                                ? `<img src="${photoUrl}" alt="${item.name || 'Item'}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                   <div class="w-full h-full hidden items-center justify-center bg-gray-200">
+                                    <i data-lucide="image-off" class="w-12 h-12 text-gray-400"></i>
+                                   </div>`
+                                : `<div class="w-full h-full flex items-center justify-center bg-gray-200">
+                                    <i data-lucide="image-off" class="w-12 h-12 text-gray-400"></i>
+                                   </div>`
+                            }
+                        </div>
+                        <div class="absolute top-3 right-3">
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full ${
+                                item.status === 'available' || item.isAvailable 
+                                    ? 'bg-green-500 text-white' 
+                                    : 'bg-red-500 text-white'
+                            }">
+                                ${item.status === 'available' || item.isAvailable ? 'Available' : 'Rented'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 mb-1">${item.name || 'Unnamed Item'}</h3>
+                                <p class="text-sm text-gray-600">${item.category || 'Uncategorized'}</p>
+                            </div>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">ID: ${item.id}</span>
+                        </div>
+
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center gap-1">
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                    Owner
+                                </span>
+                                <span class="font-medium text-gray-900">${item.owner_name || item.owner?.name || 'N/A'}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center gap-1">
+                                    <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+                                    Price/Day
+                                </th>
+                                <span class="font-bold text-blue-600">THB ${item.price_per_day || item.price || 0}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center gap-1">
+                                    <i data-lucide="shield" class="w-4 h-4"></i>
+                                    Deposit
+                                </span>
+                                <span class="font-medium text-gray-900">$${item.deposit || 0}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600 flex items-center gap-1">
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-500"></i>
+                                    Rating
+                                </span>
+                                <span class="font-medium text-gray-900">${Number(item.rating || 0).toFixed(1)}/5.0</span>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex gap-2">
+                            <button onclick="viewItemDetails('${item.id || item._id}')" 
+                                class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                View
+                            </button>
+                            <button onclick="deleteItemAdmin('${item.id || item._id}')" 
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            filteredItems = allItems.filter(item => {
+                const matchesSearch = !searchTerm || 
+                    (item.name || '').toLowerCase().includes(searchTerm) ||
+                    (item.category || '').toLowerCase().includes(searchTerm) ||
+                    (item.owner_name || item.owner?.name || '').toLowerCase().includes(searchTerm);
+                
+                const matchesCategory = !category || (item.category || '').toLowerCase() === category;
+                
+                const itemStatus = (item.status === 'available' || item.isAvailable) ? 'available' : 'rented';
+                const matchesStatus = !status || itemStatus === status;
+
+                return matchesSearch && matchesCategory && matchesStatus;
+            });
+
+            displayItems(filteredItems);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            filteredItems = [...allItems];
+            displayItems(filteredItems);
+        }
+
+        // Real-time search
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', applyFilters);
+        });
+
+        async function viewItemDetails(itemId) {
+            window.location.href = `../item_detail.html?id=${itemId}`;
+        }
+
+        async function deleteItemAdmin(itemId) {
+            const result = await Swal.fire({
+                title: 'Delete Item?',
+                text: 'This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, delete it!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    await api.deleteItem(itemId);
+                    Swal.fire('Deleted!', 'Item has been deleted.', 'success');
+                    loadItems();
+                } catch (error) {
+                    console.error('Error deleting item:', error);
+                    Swal.fire('Error', 'Failed to delete item', 'error');
+                }
+            }
+        }
+
+        function handleLogout() {
+            localStorage.clear();
+            window.location.href = '../login.html';
+        }
+
+        // Initialize
+        loadItems();
+    </script>
+</body>
+</html>

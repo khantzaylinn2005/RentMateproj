@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Payment - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">Complete Payment</h1>
+                <p class="text-gray-600 mt-2">Rental + Deposit</p>
+            </div>
+
+            <!-- Payment Card -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+                <div class="flex items-center justify-between mb-6 pb-6 border-b">
+                    <h2 class="text-xl font-bold text-gray-900">Payment Summary</h2>
+                    <div class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
+                        <i data-lucide="shield-check" class="w-4 h-4 inline mr-1"></i>
+                        Secure Payment
+                    </div>
+                </div>
+
+                <!-- Rental Details -->
+                <div id="rentalDetails" class="space-y-4 mb-6">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+
+                <!-- Payment Breakdown -->
+                <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                    <h3 class="font-bold text-gray-900 mb-4">Payment Breakdown</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Rental Fee</span>
+                            <span class="font-semibold" id="rentalFee">฿0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Security Deposit (Refundable)</span>
+                            <span class="font-semibold" id="depositFee">฿0.00</span>
+                        </div>
+                        <div class="border-t pt-3 flex justify-between text-lg">
+                            <span class="font-bold text-gray-900">Total Payment</span>
+                            <span class="font-bold text-teal-600" id="totalAmount">฿0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Payment Method</label>
+                    <div class="grid grid-cols-3 gap-4">
+                        <button class="payment-method-btn border-2 border-gray-200 rounded-xl p-4 opacity-50 cursor-not-allowed relative" data-method="card" disabled>
+                            <div class="absolute inset-0 flex items-center justify-center bg-white/80 rounded-xl">
+                                <i data-lucide="lock" class="w-6 h-6 text-gray-400"></i>
+                            </div>
+                            <i data-lucide="credit-card" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
+                            <div class="text-sm font-medium text-gray-400">Card</div>
+                        </button>
+                        <button class="payment-method-btn border-2 border-gray-200 rounded-xl p-4 opacity-50 cursor-not-allowed relative" data-method="gcash" disabled>
+                            <div class="absolute inset-0 flex items-center justify-center bg-white/80 rounded-xl">
+                                <i data-lucide="lock" class="w-6 h-6 text-gray-400"></i>
+                            </div>
+                            <i data-lucide="smartphone" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
+                            <div class="text-sm font-medium text-gray-400">GCash</div>
+                        </button>
+                        <button onclick="selectPaymentMethod('bank_transfer')" class="payment-method-btn border-2 border-teal-500 bg-teal-50 rounded-xl p-4 hover:border-teal-600 transition" data-method="bank_transfer">
+                            <i data-lucide="building-2" class="w-8 h-8 mx-auto mb-2 text-teal-600"></i>
+                            <div class="text-sm font-medium text-teal-900">Bank Transfer</div>
+                            <div class="text-xs text-teal-700 mt-1">Recommended</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bank Transfer Form -->
+                <div id="bankTransferForm" class="mb-6 space-y-4">
+                    <!-- QR Code Section -->
+                    <div class="bg-gradient-to-br from-teal-50 to-blue-50 border-2 border-teal-200 rounded-xl p-6">
+                        <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="qr-code" class="w-5 h-5 text-teal-600"></i>
+                            Scan QR Code to Pay
+                        </h3>
+                        <div id="bankAccountsList" class="space-y-3">
+                            <!-- Will be populated with bank accounts from admin -->
+                            <div class="text-center py-8">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto"></div>
+                                <p class="text-gray-600 mt-3">Loading bank accounts...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Payment Slip -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                        <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <i data-lucide="upload" class="w-5 h-5 text-teal-600"></i>
+                            Upload Payment Slip
+                        </h3>
+                        
+                        <div class="mb-4">
+                            <div id="slipPreview" class="hidden mb-4">
+                                <img id="slipImage" class="w-full max-w-md mx-auto rounded-lg border-2 border-gray-200" alt="Payment Slip Preview">
+                                <button onclick="removeSlip()" class="mt-3 text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-2 mx-auto">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    Remove
+                                </button>
+                            </div>
+                            
+                            <div id="slipUploadBox" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-teal-500 transition cursor-pointer" onclick="document.getElementById('slipInput').click()">
+                                <i data-lucide="image-plus" class="w-12 h-12 mx-auto mb-3 text-gray-400"></i>
+                                <p class="text-gray-700 font-semibold mb-1">Click to upload payment slip</p>
+                                <p class="text-sm text-gray-500">PNG, JPG up to 10MB</p>
+                            </div>
+                            <input type="file" id="slipInput" accept="image/*" class="hidden" onchange="handleSlipUpload(event)">
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-sm text-blue-900">
+                                <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                                <strong>Important:</strong> Please upload a clear photo of your payment slip/receipt after completing the transfer.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Refund Bank Details -->
+                    <div class="bg-white border-2 border-teal-200 rounded-xl p-6">
+                        <div class="flex items-start justify-between mb-2 gap-3">
+                            <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                                <i data-lucide="wallet" class="w-5 h-5 text-teal-600"></i>
+                                Refund Bank Details
+                            </h3>
+                            <button type="button" id="editRefundButton" onclick="handleEditRefundClick()" class="hidden text-sm font-semibold text-teal-600 border border-teal-500 rounded-lg px-3 py-1.5 hover:bg-teal-50 transition">
+                                Edit Bank Details
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">We will refund your deposit to this bank account once the rental is completed.</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="refundBankAccName" class="text-sm font-semibold text-gray-700 mb-2 block">Account Name</label>
+                                <input type="text" id="refundBankAccName" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-teal-500 focus:outline-none" placeholder="e.g. John Doe">
+                            </div>
+                            <div>
+                                <label for="refundBankNumber" class="text-sm font-semibold text-gray-700 mb-2 block">Account Number</label>
+                                <input type="text" id="refundBankNumber" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-teal-500 focus:outline-none" placeholder="e.g. 123-456-7890">
+                            </div>
+                            <div>
+                                <label for="refundBankName" class="text-sm font-semibold text-gray-700 mb-2 block">Bank Name</label>
+                                <input type="text" id="refundBankName" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-teal-500 focus:outline-none" placeholder="e.g. Bangkok Bank">
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="text-sm font-semibold text-gray-700 mb-2 block">Bank Book / PromptPay Proof</label>
+                            <div id="refundPreview" class="hidden mb-4">
+                                <img id="refundImage" class="w-full max-w-md mx-auto rounded-lg border-2 border-gray-200" alt="Bank Document Preview">
+                                <button type="button" id="refundRemoveButton" onclick="removeRefundProof()" class="mt-3 text-red-600 hover:text-red-700 font-semibold text-sm flex items-center gap-2 mx-auto">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                    Remove
+                                </button>
+                            </div>
+
+                            <div id="refundUploadBox" class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-teal-500 transition cursor-pointer" onclick="document.getElementById('refundProofInput').click()">
+                                <i data-lucide="image" class="w-10 h-10 mx-auto mb-2 text-gray-400"></i>
+                                <p class="text-gray-700 font-semibold mb-1">Upload bank account proof</p>
+                                <p class="text-xs text-gray-500">PNG, JPG up to 10MB</p>
+                            </div>
+                            <input type="file" id="refundProofInput" accept="image/*" class="hidden" onchange="handleRefundProofUpload(event)">
+                        </div>
+
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                            <p class="text-sm text-amber-900">
+                                <i data-lucide="shield" class="w-4 h-4 inline mr-1"></i>
+                                Make sure the account belongs to you so we can return the deposit quickly.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Notice -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-start">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600 mt-0.5 mr-3"></i>
+                        <div class="text-sm text-blue-900">
+                            <p class="font-semibold mb-1">Payment will be held securely</p>
+                            <p class="text-blue-700">Payment requires admin approval. The deposit will be refunded after you return the item and the lender confirms receipt.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-4">
+                    <button onclick="window.history.back()" class="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button onclick="processPayment()" id="payButton" disabled class="flex-1 px-6 py-4 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed">
+                        <i data-lucide="lock" class="w-5 h-5 inline mr-2"></i>
+                        Pay Now
+                    </button>
+                </div>
+            </div>
+
+            <!-- What Happens Next -->
+            <div class="bg-white rounded-xl shadow p-6">
+                <h3 class="font-bold text-gray-900 mb-4">
+                    <i data-lucide="help-circle" class="w-5 h-5 inline mr-2"></i>
+                    What happens after payment?
+                </h3>
+                <ol class="space-y-3 text-sm text-gray-700">
+                    <li class="flex items-start">
+                        <span class="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">1</span>
+                        <span>Admin will review and approve your payment</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">2</span>
+                        <span>Payment will be transferred to the lender</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">3</span>
+                        <span>You can chat with the lender to arrange pickup</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-primary-100 text-primary-700 w-6 h-6 rounded-full flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">4</span>
+                        <span>After returning the item, lender confirms and deposit is refunded</span>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        let rentalId = null;
+        let rentalData = null;
+        let selectedPaymentMethod = 'bank_transfer';
+        let paymentSlipImage = null;
+        let bankAccounts = [];
+        let refundBankPhoto = null;
+        let isRefundReadOnly = false;
+
+        function toggleRefundReadOnly(readOnly) {
+            isRefundReadOnly = readOnly;
+
+            const accNameInput = document.getElementById('refundBankAccName');
+            const numberInput = document.getElementById('refundBankNumber');
+            const bankNameInput = document.getElementById('refundBankName');
+            const inputs = [accNameInput, numberInput, bankNameInput];
+
+            inputs.forEach(input => {
+                if (!input) return;
+                input.readOnly = readOnly;
+                input.classList.toggle('bg-gray-100', readOnly);
+                input.classList.toggle('cursor-not-allowed', readOnly);
+                input.classList.toggle('text-gray-500', readOnly);
+            });
+
+            const uploadBox = document.getElementById('refundUploadBox');
+            if (uploadBox) {
+                uploadBox.classList.toggle('pointer-events-none', readOnly);
+                uploadBox.classList.toggle('opacity-60', readOnly);
+            }
+
+            const fileInput = document.getElementById('refundProofInput');
+            if (fileInput) {
+                fileInput.disabled = readOnly;
+            }
+
+            const removeButton = document.getElementById('refundRemoveButton');
+            if (removeButton) {
+                removeButton.classList.toggle('hidden', readOnly || !refundBankPhoto);
+            }
+
+            const editButton = document.getElementById('editRefundButton');
+            if (editButton && !editButton.classList.contains('hidden')) {
+                editButton.textContent = readOnly ? 'Edit Bank Details' : 'Cancel Editing';
+            }
+        }
+
+        function handleEditRefundClick() {
+            if (isRefundReadOnly) {
+                toggleRefundReadOnly(false);
+            } else {
+                toggleRefundReadOnly(true);
+                prefillRefundDetails();
+            }
+        }
+
+        // Get rental ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        rentalId = urlParams.get('rentalId');
+
+        if (!rentalId) {
+            Swal.fire('Error', 'No rental ID provided', 'error').then(() => {
+                window.location.href = '/browse_items.html';
+            });
+        }
+
+        // Load rental details
+        async function loadRentalDetails() {
+            try {
+                const response = await api.request(`/rentals/progress/${rentalId}`);
+                if (!response.success) {
+                    throw new Error('Failed to load rental details');
+                }
+
+                rentalData = response.data.rental;
+                displayRentalDetails();
+                prefillRefundDetails();
+                await loadBankAccounts();
+
+            } catch (error) {
+                console.error('Error loading rental:', error);
+                Swal.fire('Error', 'Failed to load rental details', 'error');
+            }
+        }
+
+        // Load bank accounts from admin
+        async function loadBankAccounts() {
+            try {
+                const response = await api.request('/users/bank-accounts');
+                bankAccounts = response.data || [];
+                
+                if (bankAccounts.length === 0) {
+                    document.getElementById('bankAccountsList').innerHTML = `
+                        <div class="text-center py-8">
+                            <i data-lucide="alert-circle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
+                            <p class="text-gray-700 font-semibold">No bank accounts available</p>
+                            <p class="text-sm text-gray-500 mt-1">Please contact admin for payment details</p>
+                        </div>
+                    `;
+                } else {
+                    displayBankAccounts();
+                }
+                
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading bank accounts:', error);
+                document.getElementById('bankAccountsList').innerHTML = `
+                    <div class="text-center py-8">
+                        <i data-lucide="alert-circle" class="w-12 h-12 text-red-500 mx-auto mb-3"></i>
+                        <p class="text-gray-700 font-semibold">Failed to load bank accounts</p>
+                        <p class="text-sm text-gray-500 mt-1">Please try again later</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function displayBankAccounts() {
+            const html = bankAccounts.map((account, index) => `
+                <div class="bg-white rounded-lg p-4 border-2 border-gray-200">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <div class="font-bold text-gray-900 mb-2">${account.bank_name || 'Bank Name'}</div>
+                            <div class="space-y-1 text-sm">
+                                <div class="flex items-center gap-2 text-gray-600">
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                    <span><strong>Account Name:</strong> ${account.bank_acc_name || 'N/A'}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-600">
+                                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                                    <span><strong>Account Number:</strong> ${account.bank_number || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${account.qr_code ? `
+                            <div class="flex-shrink-0">
+                                <div class="relative group cursor-pointer" onclick="viewQRCode('${account.qr_code.replace(/'/g, "\\'")}', '${account.bank_name}')">
+                                    <img src="${account.qr_code}" alt="QR Code" class="w-32 h-32 border-2 border-gray-200 rounded-lg object-contain bg-white transition-all group-hover:border-teal-500">
+                                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 rounded-lg flex items-center justify-center transition-all">
+                                        <i data-lucide="expand" class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-center text-gray-500 mt-1">Click to enlarge</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('bankAccountsList').innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // View QR Code in modal
+        function viewQRCode(qrCodeSrc, bankName) {
+            Swal.fire({
+                title: `<div class="text-xl font-bold">${bankName || 'QR Code'}</div>`,
+                html: `
+                    <div class="mt-4">
+                        <img src="${qrCodeSrc}" alt="QR Code" class="w-full max-w-md mx-auto rounded-lg border-2 border-gray-200 bg-white p-4">
+                        <p class="text-sm text-gray-600 mt-4">Scan this QR code with your banking app to make payment</p>
+                    </div>
+                `,
+                showCloseButton: true,
+                showConfirmButton: false,
+                width: '600px',
+                customClass: {
+                    popup: 'rounded-2xl'
+                }
+            });
+            
+            // Recreate icons after modal opens
+            setTimeout(() => lucide.createIcons(), 100);
+        }
+
+        // Handle slip upload
+        function handleSlipUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check file size (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                Swal.fire('Error', 'File size must be less than 10MB', 'error');
+                return;
+            }
+
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                Swal.fire('Error', 'Please upload an image file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                paymentSlipImage = e.target.result;
+                document.getElementById('slipImage').src = paymentSlipImage;
+                document.getElementById('slipPreview').classList.remove('hidden');
+                document.getElementById('slipUploadBox').classList.add('hidden');
+                
+                // Enable Pay Now button when slip is uploaded
+                document.getElementById('payButton').disabled = false;
+                
+                lucide.createIcons();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSlip() {
+            paymentSlipImage = null;
+            document.getElementById('slipInput').value = '';
+            document.getElementById('slipPreview').classList.add('hidden');
+            document.getElementById('slipUploadBox').classList.remove('hidden');
+            
+            // Disable Pay Now button when slip is removed
+            document.getElementById('payButton').disabled = true;
+            
+            lucide.createIcons();
+        }
+
+        function showRefundPreview(imageSrc) {
+            const preview = document.getElementById('refundPreview');
+            const uploadBox = document.getElementById('refundUploadBox');
+            const imageEl = document.getElementById('refundImage');
+
+            if (!preview || !uploadBox || !imageEl) {
+                return;
+            }
+
+            if (imageSrc) {
+                refundBankPhoto = imageSrc;
+                imageEl.src = imageSrc;
+                preview.classList.remove('hidden');
+                uploadBox.classList.add('hidden');
+            } else {
+                preview.classList.add('hidden');
+                uploadBox.classList.remove('hidden');
+            }
+
+            const removeButton = document.getElementById('refundRemoveButton');
+            if (removeButton) {
+                removeButton.classList.toggle('hidden', isRefundReadOnly || !refundBankPhoto);
+            }
+
+            lucide.createIcons();
+        }
+
+        function clearRefundPreview() {
+            const preview = document.getElementById('refundPreview');
+            const uploadBox = document.getElementById('refundUploadBox');
+            if (preview) {
+                preview.classList.add('hidden');
+            }
+            if (uploadBox) {
+                uploadBox.classList.remove('hidden');
+            }
+            const removeButton = document.getElementById('refundRemoveButton');
+            if (removeButton) {
+                removeButton.classList.add('hidden');
+            }
+        }
+
+        function handleRefundProofUpload(event) {
+            if (isRefundReadOnly) {
+                return;
+            }
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                Swal.fire('Error', 'File size must be less than 10MB', 'error');
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                Swal.fire('Error', 'Please upload an image file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                showRefundPreview(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeRefundProof() {
+            if (isRefundReadOnly) {
+                return;
+            }
+            refundBankPhoto = null;
+            const input = document.getElementById('refundProofInput');
+            if (input) {
+                input.value = '';
+            }
+            clearRefundPreview();
+            lucide.createIcons();
+        }
+
+        function prefillRefundDetails() {
+            const accNameInput = document.getElementById('refundBankAccName');
+            const numberInput = document.getElementById('refundBankNumber');
+            const bankNameInput = document.getElementById('refundBankName');
+
+            if (!accNameInput || !numberInput || !bankNameInput) {
+                return;
+            }
+
+            const rentalAccName = rentalData?.refund_bank_acc_name || '';
+            const rentalAccNumber = rentalData?.refund_bank_number || '';
+            const rentalBankName = rentalData?.refund_bank_name || '';
+            const rentalPhoto = rentalData?.refund_bank_photo || null;
+            const fallbackPhoto = rentalPhoto || currentUser?.refund_bank_photo || currentUser?.bank_book_photo || currentUser?.qr_code || '';
+
+            accNameInput.value = rentalAccName || currentUser?.bank_acc_name || '';
+            numberInput.value = rentalAccNumber || currentUser?.bank_number || '';
+            bankNameInput.value = rentalBankName || currentUser?.bank_name || '';
+
+            if (fallbackPhoto) {
+                showRefundPreview(fallbackPhoto);
+            } else {
+                refundBankPhoto = null;
+                clearRefundPreview();
+            }
+
+            const hasExistingDetails = Boolean(accNameInput.value && numberInput.value && bankNameInput.value);
+            const editButton = document.getElementById('editRefundButton');
+            if (editButton) {
+                editButton.classList.toggle('hidden', !hasExistingDetails);
+            }
+            toggleRefundReadOnly(hasExistingDetails);
+        }
+
+        async function saveRefundDetails() {
+            const accNameInput = document.getElementById('refundBankAccName');
+            const numberInput = document.getElementById('refundBankNumber');
+            const bankNameInput = document.getElementById('refundBankName');
+
+            if (!accNameInput || !numberInput || !bankNameInput) {
+                return false;
+            }
+
+            const bankAccName = accNameInput.value.trim();
+            const bankNumber = numberInput.value.trim();
+            const bankName = bankNameInput.value.trim();
+
+            if (!bankAccName || !bankNumber || !bankName) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Refund Details Required',
+                    text: 'Please provide the bank details we should use for your deposit refund.',
+                    confirmButtonColor: '#0d9488'
+                });
+                return false;
+            }
+
+            if (!refundBankPhoto) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Supporting Photo Needed',
+                    text: 'Upload your bank book or PromptPay QR so we can verify the refund destination.',
+                    confirmButtonColor: '#0d9488'
+                });
+                return false;
+            }
+
+            try {
+                const response = await api.updateRefundInfo(rentalId, {
+                    bank_acc_name: bankAccName,
+                    bank_number: bankNumber,
+                    bank_name: bankName,
+                    bank_book_photo: refundBankPhoto
+                });
+
+                if (!response.success) {
+                    throw new Error(response.message || 'Unable to save refund details');
+                }
+
+                if (response.data?.rental) {
+                    rentalData = { ...rentalData, ...response.data.rental };
+                    if (response.data.rental.refund_bank_photo) {
+                        refundBankPhoto = response.data.rental.refund_bank_photo;
+                        showRefundPreview(refundBankPhoto);
+                    }
+                }
+
+                if (currentUser) {
+                    currentUser.bank_acc_name = bankAccName;
+                    currentUser.bank_number = bankNumber;
+                    currentUser.bank_name = bankName;
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                }
+
+                const editButton = document.getElementById('editRefundButton');
+                if (editButton) {
+                    editButton.classList.remove('hidden');
+                }
+                toggleRefundReadOnly(true);
+
+                return true;
+            } catch (error) {
+                console.error('Save refund details error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Could not save refund info',
+                    text: error.message || 'Please try again before submitting your payment.',
+                    confirmButtonColor: '#ef4444'
+                });
+                return false;
+            }
+        }
+
+        function displayRentalDetails() {
+            // Convert to number and handle null/undefined
+            const rentalPrice = parseFloat(rentalData.total_price) || 0;
+            const depositAmount = rentalPrice * 0.2; // 20% deposit
+            const totalAmount = rentalPrice + depositAmount;
+
+            // Parse images if they exist
+            let imageUrl = '';
+            try {
+                const images = rentalData.images ? JSON.parse(rentalData.images) : [];
+                imageUrl = images.length > 0 ? images[0] : '';
+            } catch (e) {
+                console.error('Error parsing images:', e);
+            }
+
+            document.getElementById('rentalDetails').innerHTML = `
+                <div class="flex items-center gap-4 pb-4 border-b">
+                    <div class="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
+                        ${imageUrl ? `<img src="${imageUrl}" class="w-full h-full object-cover" alt="Item">` : '<div class="w-full h-full flex items-center justify-center text-gray-400"><i data-lucide="image" class="w-10 h-10"></i></div>'}
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900">${rentalData.itemName || 'Item'}</h4>
+                        <p class="text-sm text-gray-600">
+                            ${new Date(rentalData.start_date).toLocaleDateString()} - ${new Date(rentalData.end_date).toLocaleDateString()}
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('rentalFee').textContent = `฿${rentalPrice.toFixed(2)}`;
+            document.getElementById('depositFee').textContent = `฿${depositAmount.toFixed(2)}`;
+            document.getElementById('totalAmount').textContent = `฿${totalAmount.toFixed(2)}`;
+            
+            // Recreate icons
+            lucide.createIcons();
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            // Bank transfer is pre-selected, no need to change
+        }
+
+        async function processPayment() {
+            // Validate payment slip upload
+            if (!paymentSlipImage) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Payment Slip Required',
+                    text: 'Please upload your payment slip before proceeding',
+                    confirmButtonColor: '#0d9488'
+                });
+                return;
+            }
+
+            try {
+                const refundSaved = await saveRefundDetails();
+                if (!refundSaved) {
+                    return;
+                }
+
+                const rentalPrice = parseFloat(rentalData.total_price) || 0;
+                const depositAmount = rentalPrice * 0.2;
+                const totalAmount = rentalPrice + depositAmount;
+
+                // Show processing
+                Swal.fire({
+                    title: 'Submitting Payment...',
+                    html: 'Please wait while we submit your payment for approval',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Create payment with slip
+                const response = await api.request('/payments/create', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        rental_id: rentalId,
+                        payment_type: 'rental',
+                        amount: totalAmount,
+                        payment_method: 'bank_transfer',
+                        payment_slip: paymentSlipImage
+                    })
+                });
+
+                if (response.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Payment Slip Submitted!',
+                        html: `
+                            <div class="text-left space-y-3">
+                                <p>Your payment slip for <strong>THB ${totalAmount.toFixed(2)}</strong> has been submitted successfully.</p>
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                    <p class="text-sm text-blue-900">
+                                        <i data-lucide="clock" class="w-4 h-4 inline mr-1"></i>
+                                        <strong>Pending Approval</strong>
+                                    </p>
+                                    <p class="text-xs text-blue-700 mt-1">Admin will review your payment slip and approve it shortly. You'll be notified once approved.</p>
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'View My Rentals',
+                        confirmButtonColor: '#0d9488'
+                    });
+
+                    window.location.href = '/borrowing.html';
+                } else {
+                    throw new Error(response.message || 'Payment submission failed');
+                }
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Submission Failed',
+                    text: error.message || 'Failed to submit payment. Please try again.',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+
+        // Initialize
+        lucide.createIcons();
+        loadRentalDetails();
+    </script>
+</body>
+</html>

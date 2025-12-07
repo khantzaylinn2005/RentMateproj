@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Details - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        
+        .image-gallery-main {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .image-gallery-main img {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            border-radius: 1rem;
+        }
+        
+        .image-thumbnail {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+        
+        .image-thumbnail:hover {
+            transform: scale(1.05);
+            border-color: #0d9488;
+        }
+        
+        .image-thumbnail.active {
+            border-color: #0d9488;
+            box-shadow: 0 0 0 1px #0d9488;
+        }
+        
+        .info-badge {
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .price-card {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border-radius: 1rem;
+            padding: 2rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: #0d9488;
+            box-shadow: 0 10px 25px rgba(13, 148, 136, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .action-button {
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3);
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 148, 136, 0.4);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 2rem;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            border-radius: 9999px;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            padding: 2rem 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0 1rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .sidebar-user-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .sidebar-user-menu a {
+            padding: 0.5rem 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            text-decoration: none;
+        }
+
+        .sidebar-user-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i data-lucide="tent" class="w-8 h-8"></i>
+            <span class="text-xl font-bold">RentMate</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/browse_items.html" class="sidebar-link active">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span>Browse Items</span>
+            </a>
+            <a href="/dashboard.html" class="sidebar-link">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/list_new_item.html" class="sidebar-link">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>List New Item</span>
+            </a>
+            <a href="/my_items.html" class="sidebar-link">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span>My Items</span>
+            </a>
+            <a href="/borrowing.html" class="sidebar-link">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span>Borrowing</span>
+            </a>
+            <a href="/lending.html" class="sidebar-link">
+                <i data-lucide="truck" class="w-5 h-5"></i>
+                <span>Lending</span>
+            </a>
+            <a href="/chat.html" class="sidebar-link">
+                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                <span>Chat</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="sidebarUserName" class="font-semibold text-sm">User</div>
+                    <div class="text-xs text-white/70" id="userRole">Member</div>
+                </div>
+            </div>
+            <div class="sidebar-user-menu">
+                <a href="/profile.html">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Profile
+                </a>
+                <a href="/support.html">
+                    <i data-lucide="life-buoy" class="w-4 h-4 inline mr-2"></i>
+                    Customer Support
+                </a>
+                <a href="#" onclick="handleLogout()">
+                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container mx-auto px-6 py-8">
+            <!-- Back Button -->
+            <div class="mb-6">
+                <a href="/browse_items.html" class="inline-flex items-center gap-2 text-gray-600 hover:text-primary transition-colors font-semibold">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    Back to Browse
+                </a>
+            </div>
+
+            <!-- Item Detail -->
+            <div id="itemDetail">
+                <!-- Loading state -->
+                <div class="flex items-center justify-center py-20">
+                    <div class="text-center">
+                        <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4"></div>
+                        <p class="text-gray-600 font-semibold">Loading item details...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        // Check authentication
+        if (!currentUser) {
+            window.location.href = '/login.html';
+        }
+
+        // Update sidebar user info
+        if (currentUser) {
+            document.getElementById('sidebarUserName').textContent = currentUser.name || 'User';
+            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Admin' : 'Member';
+            document.getElementById('userAvatar').textContent = (currentUser.name || 'U').charAt(0).toUpperCase();
+        }
+
+        // Get item ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = urlParams.get('id');
+
+        if (!itemId) {
+            window.location.href = '/browse_items.html';
+        }
+
+        async function loadItemDetail() {
+            try {
+                const response = await api.getItemById(itemId);
+                const item = response.data;
+                
+                if (!item) {
+                    Swal.fire('Error', 'Item not found', 'error').then(() => {
+                        window.location.href = '/browse_items.html';
+                    });
+                    return;
+                }
+
+                displayItemDetail(item);
+            } catch (error) {
+                console.error('Error loading item:', error);
+                Swal.fire('Error', 'Failed to load item details', 'error').then(() => {
+                    window.location.href = '/browse_items.html';
+                });
+            }
+        }
+
+        function displayItemDetail(item) {
+            const itemDetail = document.getElementById('itemDetail');
+            
+            // Parse images JSON string
+            let images = [];
+            try {
+                images = item.images ? JSON.parse(item.images) : [];
+            } catch (e) {
+                console.error('Error parsing images:', e);
+                images = [];
+            }
+            
+            // If no images, use placeholder
+            if (!images || images.length === 0) {
+                images = ['placeholder'];
+            }
+            
+            const mainImage = images[0] !== 'placeholder' ? images[0] : null;
+            
+            itemDetail.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column - Images -->
+                    <div class="space-y-4">
+                        <!-- Main Image -->
+                        <div class="image-gallery-main">
+                            ${mainImage ? 
+                                `<img id="mainImage" src="${mainImage}" alt="${item.name}" class="w-full">` :
+                                `<div class="flex items-center justify-center h-[500px]">
+                                    <i data-lucide="image" class="w-32 h-32 text-white/50"></i>
+                                </div>`
+                            }
+                        </div>
+                        
+                        <!-- Thumbnail Gallery -->
+                        ${images.length > 1 && images[0] !== 'placeholder' ? `
+                            <div class="grid grid-cols-4 gap-3">
+                                ${images.map((img, index) => `
+                                    <div class="image-thumbnail ${index === 0 ? 'active' : ''} rounded-lg overflow-hidden" 
+                                         onclick="changeMainImage('${img}', this)">
+                                        <img src="${img}" alt="Thumbnail ${index + 1}" class="w-full h-24 object-cover">
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Right Column - Details -->
+                    <div class="space-y-6">
+                        <!-- Header -->
+                        <div>
+                            <div class="flex items-start justify-between gap-4 mb-3">
+                                <h1 class="text-4xl font-extrabold text-gray-900">${item.name}</h1>
+                                ${item.isAvailable ? 
+                                    '<span class="info-badge"><i data-lucide="check-circle" class="w-4 h-4"></i> Available</span>' :
+                                    '<span class="px-4 py-2 bg-red-500 text-white rounded-full font-semibold text-sm"><i data-lucide="x-circle" class="w-4 h-4 inline"></i> Rented</span>'
+                                }
+                            </div>
+                            
+                            <div class="flex flex-wrap items-center gap-4 text-gray-600">
+                                <span class="flex items-center gap-2">
+                                    <i data-lucide="map-pin" class="w-5 h-5 text-primary"></i>
+                                    <span class="font-medium">${item.location || 'Location not specified'}</span>
+                                </span>
+                                <span class="flex items-center gap-2">
+                                    <i data-lucide="tag" class="w-5 h-5 text-primary"></i>
+                                    <span class="font-medium">${item.category || 'Other'}</span>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Price Card -->
+                        <div class="price-card">
+                            <div class="flex items-end gap-3 mb-2">
+                                <div>
+                                    <div class="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-1">Price per day</div>
+                                    <div class="text-5xl font-extrabold">THB ${item.price}</div>
+                                </div>
+                            </div>
+                            <div class="text-gray-300 text-sm">+ $${item.deposit || 0} refundable deposit</div>
+                        </div>
+                        
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="stat-card">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <i data-lucide="sparkles" class="w-5 h-5 text-primary"></i>
+                                    </div>
+                                    <div class="text-sm text-gray-500 font-semibold">Condition</div>
+                                </div>
+                                <div class="text-xl font-bold text-gray-900 capitalize">${item.condition_status || 'Good'}</div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <i data-lucide="shield-check" class="w-5 h-5 text-primary"></i>
+                                    </div>
+                                    <div class="text-sm text-gray-500 font-semibold">Deposit</div>
+                                </div>
+                                <div class="text-xl font-bold text-gray-900">$${item.deposit || 0}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="bg-gray-50 rounded-xl p-6 border-2 border-gray-100">
+                            <h2 class="section-title">Description</h2>
+                            <p class="text-gray-700 leading-relaxed">${item.description || 'No description available for this item.'}</p>
+                        </div>
+                        
+                        <!-- Owner Info -->
+                        <div class="bg-white rounded-xl p-5 border-2 border-gray-200">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-xl">
+                                    ${(item.owner?.name || 'O').charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-500 font-semibold">Owner</div>
+                                    <div class="text-lg font-bold text-gray-900">${item.owner?.name || 'Unknown'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex gap-4 pt-4">
+                            ${item.isAvailable ? `
+                                <a href="/request_rental.html?itemId=${item._id || item.id}" 
+                                    class="action-button flex-1 flex items-center justify-center gap-2 no-underline">
+                                    <i data-lucide="calendar-check" class="w-5 h-5"></i>
+                                    Request to Rent
+                                </a>
+                            ` : `
+                                <button disabled 
+                                    class="flex-1 px-6 py-4 bg-gray-300 text-gray-500 font-bold rounded-xl cursor-not-allowed uppercase tracking-wide">
+                                    <i data-lucide="x-circle" class="w-5 h-5 inline mr-2"></i>
+                                    Currently Unavailable
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            lucide.createIcons();
+        }
+        
+        // Change main image when clicking thumbnails
+        function changeMainImage(imageSrc, thumbnail) {
+            document.getElementById('mainImage').src = imageSrc;
+            
+            // Update active thumbnail
+            document.querySelectorAll('.image-thumbnail').forEach(t => t.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await loadItemDetail();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentMate - Rent and Lend your items easily</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+            transform: scale(1.05);
+        }
+        
+        .btn-outline {
+            padding: 0.625rem 1.25rem;
+            border: 2px solid white;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+        }
+        
+        .btn-outline:hover {
+            background-color: white;
+            color: #0d9488;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .line-clamp-2 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+
+        /* Search suggestions dropdown */
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 1rem;
+            margin-top: 0.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 50;
+        }
+
+        .suggestion-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #f3f4f6;
+            text-align: left;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f9fafb;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative">
+    <!-- Background with overlay -->
+    <div class="fixed inset-0 z-0">
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('/assets/images/bg.gif');"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/40 via-secondary/30 to-teal-900/50"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10">
+        <!-- Navigation -->
+        <nav class="container mx-auto px-6 py-5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="home" class="w-7 h-7 text-white"></i>
+                    <span class="text-xl font-bold text-white">RentMate</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="text-sm text-white hover:text-teal-200 transition-colors font-medium">Home</a>
+                    <a href="#popular" class="text-sm text-white hover:text-teal-200 transition-colors font-medium">Popular</a>
+                    <a href="#features" class="text-sm text-white hover:text-teal-200 transition-colors font-medium">Features</a>
+                    <a href="#contact" class="text-sm text-white hover:text-teal-200 transition-colors font-medium">Contact</a>
+                </div>
+                <div id="authButtons" class="flex items-center space-x-3">
+                    <a href="/login.html" class="text-sm text-white hover:text-teal-200 transition-colors font-medium px-4 py-2">Log in</a>
+                    <a href="/signup.html" class="btn-primary">Sign Up</a>
+                </div>
+                <div id="userMenu" class="hidden flex items-center space-x-3">
+                    <span id="userName" class="text-white font-medium"></span>
+                    <a href="/browse_items.html" class="btn-outline text-sm">Browse Items</a>
+                    <a href="/dashboard.html" class="btn-primary text-sm">Dashboard</a>
+                    <button onclick="handleLogout()" class="text-sm text-white hover:text-teal-200 transition-colors font-medium px-4 py-2">Logout</button>
+                    <a id="adminMenuItem" href="/admin.html" class="hidden text-sm bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium">Admin</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section id="home" class="container mx-auto px-6 py-16 md:py-24">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
+                        Rent and Lend<br/>
+                        <span class="text-teal-200">your items easily</span>
+                    </h1>
+                    <p class="text-base md:text-lg text-white/80 mb-8 max-w-xl mx-auto">
+                        Turn your unused items into income. Rent what you need, lend what you don't.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+                        <button onclick="document.getElementById('itemsSection')?.scrollIntoView({behavior: 'smooth'})" class="btn-primary flex items-center space-x-2">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                            <span>Browse Items</span>
+                        </button>
+                        <button onclick="currentUser ? window.location.href='/dashboard.html' : window.location.href='/login.html'" class="btn-outline flex items-center space-x-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>List an Item</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Search Bar -->
+                    <div class="max-w-2xl mx-auto relative">
+                        <form onsubmit="handleSearch(event)" class="bg-white/95 backdrop-blur-sm rounded-full shadow-xl p-2 flex items-center">
+                            <i data-lucide="search" class="w-5 h-5 text-gray-400 ml-4"></i>
+                            <input 
+                                type="text" 
+                                id="searchInput"
+                                placeholder="Search for camping items..." 
+                                class="flex-1 px-4 py-2.5 bg-transparent outline-none text-gray-700 text-sm"
+                                autocomplete="off"
+                                oninput="handleSearchInput(event)"
+                                onfocus="handleSearchFocus()"
+                                onblur="handleSearchBlur()"
+                            />
+                            <button type="submit" class="bg-primary hover:bg-secondary text-white px-6 py-2.5 rounded-full font-medium transition-all duration-300 flex items-center space-x-2 text-sm">
+                                <span>Search</span>
+                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+                        <!-- Search Suggestions Dropdown -->
+                        <div id="searchSuggestions" class="search-suggestions hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="container mx-auto px-6 py-12">
+            <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card text-center">
+                    <i data-lucide="users" class="w-10 h-10 text-primary mx-auto mb-3"></i>
+                    <h3 id="statsUsers" class="text-3xl font-bold text-gray-800 mb-1">Loading...</h3>
+                    <p class="text-sm text-gray-600 font-medium">Active Users</p>
+                </div>
+                <div class="card text-center">
+                    <i data-lucide="package" class="w-10 h-10 text-primary mx-auto mb-3"></i>
+                    <h3 id="statsItems" class="text-3xl font-bold text-gray-800 mb-1">Loading...</h3>
+                    <p class="text-sm text-gray-600 font-medium">Items Listed</p>
+                </div>
+                <div class="card text-center">
+                    <i data-lucide="star" class="w-10 h-10 text-primary mx-auto mb-3"></i>
+                    <h3 id="statsRating" class="text-3xl font-bold text-gray-800 mb-1">4.9/5</h3>
+                    <p class="text-sm text-gray-600 font-medium">User Rating</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="container mx-auto px-6 py-16">
+            <div class="max-w-5xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+                    Why Choose RentMate?
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="card">
+                        <div class="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                            <i data-lucide="shield-check" class="w-6 h-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Secure Transactions</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">Your payments are protected with bank-level security and insurance coverage.</p>
+                    </div>
+                    <div class="card">
+                        <div class="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                            <i data-lucide="zap" class="w-6 h-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Instant Booking</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">Book items instantly and get what you need when you need it.</p>
+                    </div>
+                    <div class="card">
+                        <div class="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                            <i data-lucide="heart" class="w-6 h-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Community Driven</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">Join a trusted community of renters and lenders in your area.</p>
+                    </div>
+                    <div class="card">
+                        <div class="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                            <i data-lucide="dollar-sign" class="w-6 h-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Earn Money</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">Turn your unused items into a steady income stream.</p>
+                    </div>
+                    <div class="card">
+                        <div class="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                            <i data-lucide="globe" class="w-6 h-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Eco-Friendly</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">Reduce waste by sharing resources within your community.</p>
+                    </div>
+                    <div class="card">
+                        <div class="bg-primary/10 rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                            <i data-lucide="headphones" class="w-6 h-6 text-primary"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">24/7 Support</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">Our dedicated team is always here to help you.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Available Items -->
+        <section id="itemsSection" class="container mx-auto px-6 py-16">
+            <div class="max-w-5xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+                    Available Items
+                </h2>
+                <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Items will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Categories -->
+        <section id="popular" class="container mx-auto px-6 py-16">
+            <div class="max-w-5xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+                    Popular Categories
+                </h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div onclick="loadItems({category: 'tent'})" class="card text-center cursor-pointer hover:shadow-xl transition-shadow">
+                        <i data-lucide="tent" class="w-10 h-10 text-primary mx-auto mb-3"></i>
+                        <h3 class="text-base font-bold text-gray-800">Tents</h3>
+                    </div>
+                    <div onclick="loadItems({category: 'sleeping-bag'})" class="card text-center cursor-pointer hover:shadow-xl transition-shadow">
+                        <i data-lucide="moon" class="w-10 h-10 text-primary mx-auto mb-3"></i>
+                        <h3 class="text-base font-bold text-gray-800">Sleeping Bags</h3>
+                    </div>
+                    <div onclick="loadItems({category: 'backpack'})" class="card text-center cursor-pointer hover:shadow-xl transition-shadow">
+                        <i data-lucide="backpack" class="w-10 h-10 text-primary mx-auto mb-3"></i>
+                        <h3 class="text-base font-bold text-gray-800">Backpacks</h3>
+                    </div>
+                    <div onclick="loadItems({category: 'cooking'})" class="card text-center cursor-pointer hover:shadow-xl transition-shadow">
+                        <i data-lucide="chef-hat" class="w-10 h-10 text-primary mx-auto mb-3"></i>
+                        <h3 class="text-base font-bold text-gray-800">Cooking</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="container mx-auto px-6 py-16">
+            <div class="max-w-3xl mx-auto bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-10 text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                    Ready to Get Started?
+                </h2>
+                <p class="text-base text-gray-600 mb-6">
+                    Join thousands of people who are already renting and lending on RentMate.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <a href="/signup.html" class="btn-primary">
+                        Sign Up for Free
+                    </a>
+                    <button onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 border-2 border-primary text-primary font-medium rounded-lg hover:bg-primary hover:text-white transition-all duration-300 text-sm">
+                        Learn More
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer id="contact" class="container mx-auto px-6 py-12 mt-16">
+            <div class="max-w-5xl mx-auto border-t border-white/20 pt-10">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-3">
+                            <i data-lucide="home" class="w-5 h-5 text-white"></i>
+                            <span class="text-lg font-bold text-white">RentMate</span>
+                        </div>
+                        <p class="text-sm text-white/70 leading-relaxed">Rent and lend items in your community easily and securely.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-3 text-sm">Company</h4>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">About Us</a></li>
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">Careers</a></li>
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">Press</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-3 text-sm">Support</h4>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">Help Center</a></li>
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">Safety</a></li>
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">Contact Us</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-semibold mb-3 text-sm">Legal</h4>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">Terms of Service</a></li>
+                            <li><a href="#" class="text-sm text-white/70 hover:text-white transition-colors">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="text-center text-white/60 pt-6 border-t border-white/20">
+                    <p class="text-xs">&copy; 2025 RentMate. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Login</h2>
+                <button onclick="ui.hideModal('loginModal')" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <form onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" name="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <button type="submit" class="btn-primary w-full">Login</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Don't have an account? 
+                    <button type="button" onclick="ui.hideModal('loginModal'); ui.showModal('registerModal')" class="text-primary font-medium">Sign up</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
+                <button onclick="ui.hideModal('registerModal')" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <form onsubmit="handleRegister(event)">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <input type="email" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                        <input type="password" name="password" minlength="6" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                        <input type="tel" name="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+                        <input type="text" name="location" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Passport No. *</label>
+                        <input type="text" name="passportNo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary w-full">Create Account</button>
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Already have an account? 
+                    <button type="button" onclick="ui.hideModal('registerModal'); ui.showModal('loginModal')" class="text-primary font-medium">Login</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Item Detail Modal -->
+    <div id="itemDetailModal" class="modal hidden">
+        <div class="modal-content max-w-4xl">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Item Details</h2>
+                <button onclick="ui.hideModal('itemDetailModal')" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="itemDetailContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Rental Request Modal -->
+    <div id="rentalModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Request Rental</h2>
+                <button onclick="ui.hideModal('rentalModal')" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <form onsubmit="handleCreateRental(event)">
+                <input type="hidden" id="rentalItemId" name="itemId">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                    <input type="date" name="startDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                    <input type="date" name="endDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                <button type="submit" class="btn-primary w-full">Submit Request</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./app.js"></script>
+    <script>
+        // Search suggestions state
+        let searchTimeout = null;
+        let suggestionsVisible = false;
+        let allItems = [];
+
+        // Load dynamic stats on page load
+        async function loadStats() {
+            try {
+                // Get items count (public endpoint)
+                const itemsResponse = await fetch('/api/items');
+                if (itemsResponse.ok) {
+                    const itemsData = await itemsResponse.json();
+                    const itemsCount = itemsData.data?.length || 0;
+                    document.getElementById('statsItems').textContent = itemsCount > 0 ? `${itemsCount}+` : '0';
+                    allItems = itemsData.data || [];
+                }
+
+                // Get users count (requires auth, so try but fail gracefully)
+                // If user is logged in and admin, show real count
+                if (authToken && currentUser?.role === 'admin') {
+                    try {
+                        const usersResponse = await fetch('/api/users', {
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`
+                            }
+                        });
+                        if (usersResponse.ok) {
+                            const usersData = await usersResponse.json();
+                            const usersCount = usersData.data?.length || 0;
+                            document.getElementById('statsUsers').textContent = usersCount > 0 ? `${usersCount}+` : '0';
+                        }
+                    } catch (err) {
+                        // Fallback to estimated count
+                        document.getElementById('statsUsers').textContent = '50+';
+                    }
+                } else {
+                    // Show estimated count for non-admin users
+                    document.getElementById('statsUsers').textContent = '50+';
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('statsUsers').textContent = '50+';
+                document.getElementById('statsItems').textContent = '0';
+            }
+        }
+
+        // Handle search input with debounce
+        function handleSearchInput(event) {
+            const query = event.target.value.trim();
+            
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
+            // Hide suggestions if query is empty
+            if (!query) {
+                hideSuggestions();
+                return;
+            }
+
+            // Debounce search - wait 300ms after user stops typing
+            searchTimeout = setTimeout(() => {
+                showSearchSuggestions(query);
+            }, 300);
+        }
+
+        // Show search suggestions dropdown
+        function showSearchSuggestions(query) {
+            const suggestionsDiv = document.getElementById('searchSuggestions');
+            const lowerQuery = query.toLowerCase();
+
+            // Filter items that match the search query
+            const matches = allItems.filter(item => {
+                return item.name.toLowerCase().includes(lowerQuery) ||
+                       item.description.toLowerCase().includes(lowerQuery) ||
+                       item.category?.toLowerCase().includes(lowerQuery);
+            }).slice(0, 5); // Show max 5 suggestions
+
+            if (matches.length === 0) {
+                suggestionsDiv.innerHTML = `
+                    <div class="suggestion-item text-gray-500 text-sm">
+                        <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                        No items found for "${query}"
+                    </div>
+                `;
+            } else {
+                suggestionsDiv.innerHTML = matches.map(item => {
+                    const itemId = item._id || item.id;
+                    if (!itemId) {
+                        console.error('Item missing ID:', item);
+                        return '';
+                    }
+                    console.log('Creating suggestion for item:', itemId, item.name);
+                    return `
+                    <div class="suggestion-item" data-item-id="${itemId}">
+                        <div class="flex items-start space-x-3">
+                            <i data-lucide="package" class="w-5 h-5 text-primary mt-1 flex-shrink-0"></i>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium text-gray-800 text-sm truncate">${item.name}</div>
+                                <div class="text-xs text-gray-500 truncate">${item.description.substring(0, 60)}...</div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-xs font-semibold text-primary">THB ${item.price}/day</span>
+                                    ${item.location ? `<span class="text-xs text-gray-400">• ${item.location}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                }).filter(html => html !== '').join('');
+                
+                // Add click event listeners to suggestions
+                setTimeout(() => {
+                    document.querySelectorAll('.suggestion-item[data-item-id]').forEach(item => {
+                        item.addEventListener('mousedown', (e) => {
+                            const itemId = e.currentTarget.getAttribute('data-item-id');
+                            selectSuggestion(itemId);
+                        });
+                    });
+                }, 0);
+            }
+
+            suggestionsDiv.classList.remove('hidden');
+            suggestionsVisible = true;
+            
+            // Re-initialize Lucide icons for the new content
+            setTimeout(() => lucide.createIcons(), 0);
+        }
+
+        // Hide suggestions
+        function hideSuggestions() {
+            setTimeout(() => {
+                const suggestionsDiv = document.getElementById('searchSuggestions');
+                suggestionsDiv.classList.add('hidden');
+                suggestionsVisible = false;
+            }, 200); // Small delay to allow click events
+        }
+
+        // Handle search focus
+        function handleSearchFocus() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query && allItems.length > 0) {
+                showSearchSuggestions(query);
+            }
+        }
+
+        // Handle search blur
+        function handleSearchBlur() {
+            hideSuggestions();
+        }
+
+        // Select a suggestion
+        function selectSuggestion(itemId) {
+            console.log('selectSuggestion called with itemId:', itemId);
+            
+            // Validate itemId
+            if (!itemId || itemId === 'undefined') {
+                console.error('Invalid itemId passed to selectSuggestion');
+                return;
+            }
+            
+            // Find the item by ID
+            const selectedItem = allItems.find(item => item._id === itemId);
+            if (selectedItem) {
+                document.getElementById('searchInput').value = selectedItem.name;
+                console.log('Found item:', selectedItem.name);
+            } else {
+                console.error('Item not found in allItems array');
+            }
+            
+            hideSuggestions();
+            
+            // Navigate to item detail page
+            window.location.href = `/item_detail.html?id=${itemId}`;
+        }
+
+        // Override the handleSearch function to work with current items
+        const originalHandleSearch = window.handleSearch;
+        window.handleSearch = function(event) {
+            event.preventDefault();
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            
+            if (!searchTerm) {
+                loadItems();
+                return;
+            }
+
+            // Filter and display matching items
+            const lowerSearch = searchTerm.toLowerCase();
+            const filteredItems = allItems.filter(item => {
+                return item.name.toLowerCase().includes(lowerSearch) ||
+                       item.description.toLowerCase().includes(lowerSearch) ||
+                       item.category?.toLowerCase().includes(lowerSearch);
+            });
+
+            displayItems(filteredItems);
+            
+            // Scroll to items section
+            document.getElementById('itemsSection')?.scrollIntoView({ behavior: 'smooth' });
+            
+            // Hide suggestions
+            hideSuggestions();
+        };
+
+        // Add scroll effect to navbar
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('bg-white/10', 'backdrop-blur-md', 'shadow-lg');
+            } else {
+                nav.classList.remove('bg-white/10', 'backdrop-blur-md', 'shadow-lg');
+            }
+        });
+
+        // Load stats and items when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+        });
+    </script>
+</body>
+</html>

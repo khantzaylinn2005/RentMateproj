@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Bank Account - RentMate Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; background: #f8fafc; }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #0d9488;
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.5rem;
+        }
+        
+        .required::after {
+            content: ' *';
+            color: #ef4444;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            color: white;
+            padding: 0.875rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #64748b;
+            padding: 0.875rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <a href="/admin/banking.html" class="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        <span class="font-medium">Back to Banking</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-5 h-5 text-primary"></i>
+                    <span class="font-bold text-xl text-gray-800">RentMate Admin</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full mb-4">
+                <i data-lucide="edit" class="w-8 h-8 text-white"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Bank Account</h1>
+            <p class="text-gray-600">Update the bank account details</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading bank account details...</p>
+        </div>
+
+        <!-- Form Card -->
+        <div id="formCard" class="bg-white rounded-2xl shadow-lg p-8 hidden">
+            <form id="editBankForm">
+                <!-- Bank Information Section -->
+                <div class="mb-8">
+                    <div class="flex items-center space-x-2 mb-6">
+                        <i data-lucide="building-2" class="w-5 h-5 text-primary"></i>
+                        <h2 class="text-xl font-bold text-gray-800">Bank Information</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="bankName" class="form-label required">Bank Name</label>
+                            <input type="text" id="bankName" name="bankName" class="form-input" required>
+                        </div>
+                        
+                        <div>
+                            <label for="accountType" class="form-label required">Account Type</label>
+                            <select id="accountType" name="accountType" class="form-input" required>
+                                <option value="">Select account type</option>
+                                <option value="Savings">Savings Account</option>
+                                <option value="Current">Current Account</option>
+                                <option value="Business">Business Account</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Details Section -->
+                <div class="mb-8">
+                    <div class="flex items-center space-x-2 mb-6">
+                        <i data-lucide="hash" class="w-5 h-5 text-primary"></i>
+                        <h2 class="text-xl font-bold text-gray-800">Account Details</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="bankNumber" class="form-label required">Account Number</label>
+                            <input type="text" id="bankNumber" name="bankNumber" class="form-input font-mono" required>
+                        </div>
+                        
+                        <div>
+                            <label for="accountHolder" class="form-label required">Account Holder Name</label>
+                            <input type="text" id="accountHolder" name="accountHolder" class="form-input" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branch & International Section -->
+                <div class="mb-8">
+                    <div class="flex items-center space-x-2 mb-6">
+                        <i data-lucide="map-pin" class="w-5 h-5 text-primary"></i>
+                        <h2 class="text-xl font-bold text-gray-800">Branch & International Details</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="branchName" class="form-label">Branch Name</label>
+                            <input type="text" id="branchName" name="branchName" class="form-input">
+                        </div>
+                        
+                        <div>
+                            <label for="swiftCode" class="form-label">SWIFT/BIC Code</label>
+                            <input type="text" id="swiftCode" name="swiftCode" class="form-input font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information Section -->
+                <div class="mb-8">
+                    <div class="flex items-center space-x-2 mb-6">
+                        <i data-lucide="file-text" class="w-5 h-5 text-primary"></i>
+                        <h2 class="text-xl font-bold text-gray-800">Additional Information</h2>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label for="purpose" class="form-label">Purpose</label>
+                            <input type="text" id="purpose" name="purpose" class="form-input">
+                        </div>
+                        
+                        <div>
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea id="notes" name="notes" class="form-input" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button type="button" onclick="window.location.href='/admin/banking.html'" class="btn-secondary flex items-center space-x-2">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <span>Cancel</span>
+                    </button>
+                    <button type="submit" class="btn-primary flex items-center space-x-2">
+                        <i data-lucide="save" class="w-5 h-5"></i>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // Check if admin is logged in
+        if (!currentUser || currentUser.role !== 'admin') {
+            window.location.href = '/admin.html';
+        }
+
+        // Get bank ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const bankId = urlParams.get('id');
+
+        if (!bankId) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No bank account ID provided'
+            }).then(() => {
+                window.location.href = '/admin/banking.html';
+            });
+        }
+
+        // Load bank data
+        async function loadBankData() {
+            try {
+                const response = await api.getBankingById(bankId);
+                const bank = response.data;
+
+                // Populate form
+                document.getElementById('bankName').value = bank.bank_name;
+                document.getElementById('accountType').value = bank.account_type;
+                document.getElementById('bankNumber').value = bank.bank_number;
+                document.getElementById('accountHolder').value = bank.account_holder_name;
+                document.getElementById('branchName').value = bank.branch_name || '';
+                document.getElementById('swiftCode').value = bank.swift_code || '';
+                document.getElementById('purpose').value = bank.purpose || '';
+                document.getElementById('notes').value = bank.notes || '';
+
+                // Show form, hide loading
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('formCard').classList.remove('hidden');
+                lucide.createIcons();
+
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load bank account details'
+                }).then(() => {
+                    window.location.href = '/admin/banking.html';
+                });
+            }
+        }
+
+        // Form submission
+        document.getElementById('editBankForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                bank_name: document.getElementById('bankName').value.trim(),
+                bank_number: document.getElementById('bankNumber').value.trim(),
+                account_holder_name: document.getElementById('accountHolder').value.trim(),
+                account_type: document.getElementById('accountType').value,
+                branch_name: document.getElementById('branchName').value.trim() || null,
+                swift_code: document.getElementById('swiftCode').value.trim() || null,
+                purpose: document.getElementById('purpose').value.trim() || null,
+                notes: document.getElementById('notes').value.trim() || null
+            };
+
+            try {
+                // Show loading
+                Swal.fire({
+                    title: 'Updating Bank Account...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                await api.updateBanking(bankId, formData);
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: 'Bank account updated successfully!',
+                    confirmButtonText: 'Go to Banking',
+                    confirmButtonColor: '#0d9488'
+                }).then(() => {
+                    window.location.href = '/admin/banking.html';
+                });
+
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Failed to update bank account'
+                });
+            }
+        });
+
+        // Initialize
+        loadBankData();
+    </script>
+</body>
+</html>

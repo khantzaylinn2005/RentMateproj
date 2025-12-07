@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+            transform: scale(1.05);
+        }
+
+
+    </style>
+</head>
+<body class="min-h-screen relative">
+    <!-- Background with overlay -->
+    <div class="fixed inset-0 z-0">
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('/assets/images/bg.gif');"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/40 via-secondary/30 to-teal-900/50"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 min-h-screen flex items-center justify-center px-4 py-8">
+        <div class="w-full max-w-2xl">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <a href="/index.html" class="inline-flex items-center space-x-2 text-white mb-6">
+                    <i data-lucide="home" class="w-8 h-8"></i>
+                    <span class="text-2xl font-bold">RentMate</span>
+                </a>
+                <h1 class="text-3xl font-bold text-white mb-2">Create Your Account</h1>
+                <p class="text-white/80">Join our community of renters and lenders</p>
+            </div>
+
+            <!-- Sign Up Card -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+                <!-- Sign Up Form -->
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6">Create Your Account</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <!-- Full Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i data-lucide="user" class="w-4 h-4 inline mr-1"></i>
+                                Full Name *
+                            </label>
+                            <input 
+                                type="text" 
+                                name="name" 
+                                id="name"
+                                placeholder="John Doe"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+                                required
+                            >
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i data-lucide="mail" class="w-4 h-4 inline mr-1"></i>
+                                Email Address *
+                            </label>
+                            <input 
+                                type="email" 
+                                name="email" 
+                                id="email"
+                                placeholder="you@example.com"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <!-- Password -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i data-lucide="lock" class="w-4 h-4 inline mr-1"></i>
+                                Password *
+                            </label>
+                            <input 
+                                type="password" 
+                                name="password" 
+                                id="password"
+                                placeholder="Min. 6 characters"
+                                minlength="6"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+                                required
+                            >
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i data-lucide="lock" class="w-4 h-4 inline mr-1"></i>
+                                Confirm Password *
+                            </label>
+                            <input 
+                                type="password" 
+                                name="confirmPassword" 
+                                id="confirmPassword"
+                                placeholder="Re-enter password"
+                                minlength="6"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <!-- Phone -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i data-lucide="phone" class="w-4 h-4 inline mr-1"></i>
+                                Phone Number *
+                            </label>
+                            <input 
+                                type="tel" 
+                                name="phone" 
+                                id="phone"
+                                placeholder="+1 (555) 000-0000"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+                                required
+                            >
+                        </div>
+
+                        <!-- Location -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                                Location *
+                            </label>
+                            <input 
+                                type="text" 
+                                name="location" 
+                                id="location"
+                                placeholder="City, State"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Terms -->
+                    <div class="mb-6">
+                        <label class="flex items-start">
+                            <input type="checkbox" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary mt-1" required>
+                            <span class="ml-2 text-sm text-gray-600">
+                                I agree to the <a href="#" class="text-primary hover:text-secondary font-medium">Terms of Service</a> 
+                                and <a href="#" class="text-primary hover:text-secondary font-medium">Privacy Policy</a>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-primary w-full py-3 text-base">
+                        <i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i>
+                        Create Account
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="mt-6 text-center">
+                    <span class="text-sm text-gray-500">or</span>
+                </div>
+
+                <!-- Login Link -->
+                <div class="text-center mt-4">
+                    <p class="text-sm text-gray-600">
+                        Already have an account? 
+                        <a href="/login.html" class="text-primary hover:text-secondary font-semibold">
+                            Login here
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Back to Home -->
+            <div class="text-center mt-6">
+                <a href="/index.html" class="text-sm text-white/80 hover:text-white font-medium">
+                    <i data-lucide="arrow-left" class="w-4 h-4 inline mr-1"></i>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="./app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            
+            // Get form data
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const phone = document.getElementById('phone').value;
+            const location = document.getElementById('location').value;
+
+            // Check password match
+            if (password !== confirmPassword) {
+                ui.showNotification('Passwords do not match!', 'error');
+                return;
+            }
+
+            // Create user data object
+            const userData = {
+                name,
+                email,
+                password,
+                phone,
+                location
+            };
+
+            try {
+                const response = await api.register(userData);
+                if (response.success) {
+                    ui.showNotification('Account created successfully! You can now browse and borrow items. To list items, you\'ll need to become a verified lender.');
+                    
+                    // Redirect to login
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                }
+            } catch (error) {
+                ui.showNotification(error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

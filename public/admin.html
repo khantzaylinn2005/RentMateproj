@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Admin Navigation Tabs */
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .admin-tab {
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .admin-tab:hover {
+            background-color: #f0fdfa;
+        }
+
+        .admin-tab.active {
+            background-color: #0d9488;
+            color: white;
+        }
+
+        /* Responsive Navigation */
+        @media (max-width: 768px) {
+            .admin-tabs {
+                flex-direction: column;
+            }
+            
+            .admin-tab {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .top-nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-7 h-7 text-yellow-500"></i>
+                    <span class="text-xl font-bold text-gray-800">RentMate Admin</span>
+                </div>
+                <div class="flex items-center space-x-6 top-nav-links">
+                    <a href="/index.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="home" class="w-4 h-4 inline mr-1"></i>
+                        Home
+                    </a>
+                    <a href="/dashboard.html" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-1"></i>
+                        Dashboard
+                    </a>
+                    <button onclick="handleLogout()" class="text-gray-700 hover:text-primary transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4 inline mr-1"></i>
+                        Logout
+                    </button>
+                </div>
+                <button class="mobile-menu-btn text-gray-700" onclick="toggleMobileMenu()">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Admin Tabs -->
+        <div class="bg-white rounded-lg shadow mb-8 p-4">
+            <div class="admin-tabs">
+                <button onclick="showAdminSection('users')" id="usersTab" class="admin-tab active">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                    <span>Users</span>
+                </button>
+                <button onclick="window.location.href='/admin/items.html'" id="itemsTab" class="admin-tab">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                    <span>Items</span>
+                </button>
+                <button onclick="window.location.href='/admin/rentals.html'" id="rentalsTab" class="admin-tab">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    <span>Rentals</span>
+                </button>
+                <button onclick="window.location.href='/admin/rental_management.html'" id="rentalWorkflowTab" class="admin-tab">
+                    <i data-lucide="workflow" class="w-4 h-4"></i>
+                    <span>Rental Workflow</span>
+                </button>
+                <button onclick="window.location.href='/admin/verification.html'" id="verificationsTab" class="admin-tab">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <span>Verifications</span>
+                </button>
+                <button onclick="window.location.href='/admin/item_approval.html'" id="itemApprovalsTab" class="admin-tab">
+                    <i data-lucide="package-check" class="w-4 h-4"></i>
+                    <span>Item Approvals</span>
+                </button>
+                <button onclick="window.location.href='/admin/banking.html'" id="bankingTab" class="admin-tab">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                    <span>Banking</span>
+                </button>
+                <button onclick="showAdminSection('stats')" id="statsTab" class="admin-tab">
+                    <i data-lucide="bar-chart" class="w-4 h-4"></i>
+                    <span>Statistics</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div id="usersSection" class="admin-section">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">User Management</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passport</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rating</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Section -->
+        <div id="itemsSection" class="admin-section hidden">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Items Management</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Owner</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price/Day</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deposit</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rating</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Items will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rentals Section -->
+        <div id="rentalsSection" class="admin-section hidden">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Rentals Management</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rental ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Borrower</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lender</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rentalsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Rentals will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verifications Section -->
+        <div id="verificationsSection" class="admin-section hidden">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <i data-lucide="shield-check" class="w-6 h-6 inline mr-2"></i>
+                        Lender Verification Requests
+                    </h2>
+                    <a href="/admin/verification.html" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-secondary transition-colors font-semibold flex items-center gap-2">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                        View Full Page
+                    </a>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <i data-lucide="info" class="w-5 h-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0"></i>
+                            <p class="text-sm text-blue-800">
+                                Review and approve lender verification requests. Users who want to list items must be verified.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passport/ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Document</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verificationsTableBody" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                    <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
+                                    <p>No pending verifications</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div id="statsSection" class="admin-section hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Platform Statistics</h2>
+            
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total Users</p>
+                            <p id="totalUsers" class="text-3xl font-bold text-gray-800">0</p>
+                        </div>
+                        <i data-lucide="users" class="w-12 h-12 text-blue-500"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total Items</p>
+                            <p id="totalItems" class="text-3xl font-bold text-gray-800">0</p>
+                        </div>
+                        <i data-lucide="package" class="w-12 h-12 text-green-500"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total Rentals</p>
+                            <p id="totalRentals" class="text-3xl font-bold text-gray-800">0</p>
+                        </div>
+                        <i data-lucide="calendar" class="w-12 h-12 text-purple-500"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Active Rentals</p>
+                            <p id="activeRentals" class="text-3xl font-bold text-gray-800">0</p>
+                        </div>
+                        <i data-lucide="activity" class="w-12 h-12 text-yellow-500"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Link Banner -->
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 rounded-xl shadow-lg mb-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-white/20 p-3 rounded-lg">
+                            <i data-lucide="bar-chart-3" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-1">View Detailed Statistics & Analytics</h3>
+                            <p class="text-purple-100 text-sm">Comprehensive charts, trends, and insights about your platform</p>
+                        </div>
+                    </div>
+                    <a href="/admin/statistics.html" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-purple-50 transition shadow-lg">
+                        <i data-lucide="trending-up" class="w-4 h-4 inline mr-2"></i>
+                        View Statistics
+                    </a>
+                </div>
+            </div>
+
+            <!-- Charts Placeholder -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Category Distribution</h3>
+                    <div id="categoryChart" class="text-gray-600">
+                        <!-- Chart would go here -->
+                        <p class="text-sm">Charts can be implemented with libraries like Chart.js</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Rental Trends</h3>
+                    <div id="rentalChart" class="text-gray-600">
+                        <!-- Chart would go here -->
+                        <p class="text-sm">Charts can be implemented with libraries like Chart.js</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Edit User</h2>
+                <button onclick="ui.hideModal('editUserModal')" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <form id="editUserForm" onsubmit="handleUpdateUser(event)">
+                <input type="hidden" id="editUserId">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input type="text" id="editUserName" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="editUserEmail" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <select id="editUserRole" name="role" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="editUserStatus" name="isActive" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary w-full">Update User</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./app.js"></script>
+    <script src="./admin.js"></script>
+</body>
+</html>

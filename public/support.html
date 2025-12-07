@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Support - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background-color: #ef4444;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            padding: 1.5rem 0;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #fff;
+        }
+
+        .sidebar-logo span {
+            font-size: 1.375rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-nav {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.875rem 0.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #fff;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .sidebar-user-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .sidebar-user-menu a {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-user-menu a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transform: translateX(2px);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding-bottom: 3rem;
+        }
+
+        .support-card {
+            background: #fff;
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 45px -24px rgba(15, 23, 42, 0.35);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .sidebar-user {
+                position: static;
+                margin-top: 1.5rem;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 1.5rem;
+            }
+        }
+        </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i data-lucide="tent" class="w-8 h-8"></i>
+            <span class="text-xl font-bold">RentMate</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/browse_items.html" class="sidebar-link">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span>Browse Items</span>
+            </a>
+            <a href="/dashboard.html" class="sidebar-link">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/list_new_item.html" class="sidebar-link">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>List New Item</span>
+            </a>
+            <a href="/my_items.html" class="sidebar-link">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span>My Items</span>
+            </a>
+            <a href="/borrowing.html" class="sidebar-link">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span>Borrowing</span>
+            </a>
+            <a href="/lending.html" class="sidebar-link">
+                <i data-lucide="truck" class="w-5 h-5"></i>
+                <span>Lending</span>
+            </a>
+            <a href="/chat.html" class="sidebar-link">
+                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/notification.html" class="sidebar-link" id="notificationsLink">
+                <div class="relative inline-block">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="notificationBadge" class="notification-badge" style="display: none;"></span>
+                </div>
+                <span>Notifications</span>
+            </a>
+            <a href="/support.html" class="sidebar-link active">
+                <i data-lucide="life-buoy" class="w-5 h-5"></i>
+                <span>Customer Support</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="sidebarUserName" class="font-semibold text-sm">User</div>
+                    <div class="text-xs text-white/70" id="userRole">Member</div>
+                </div>
+            </div>
+            <div class="sidebar-user-menu">
+                <a href="/profile.html">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Profile
+                </a>
+                <a href="/support.html">
+                    <i data-lucide="life-buoy" class="w-4 h-4 inline mr-2"></i>
+                    Customer Support
+                </a>
+                <a href="#" onclick="handleLogout()">
+                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <main class="mx-auto max-w-6xl space-y-10 px-6 py-10">
+            <header class="flex flex-col gap-8 rounded-3xl border border-slate-200/60 bg-white px-8 py-10 shadow-lg lg:flex-row lg:items-center lg:justify-between">
+                <div class="max-w-2xl space-y-3">
+                    <span class="inline-flex items-center gap-2 rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-teal-700">
+                        <i data-lucide="life-buoy" class="w-3.5 h-3.5"></i>
+                        Support Center
+                    </span>
+                    <h1 class="text-3xl font-bold text-slate-900">We are here to help</h1>
+                    <p class="text-sm leading-relaxed text-slate-500">
+                        Submit a ticket and keep track of every conversation with the RentMate team in one place.
+                    </p>
+                </div>
+                <div class="flex items-center gap-6 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-5 shadow-inner">
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Average response</p>
+                        <p class="font-semibold text-slate-900">Within 24 hours</p>
+                    </div>
+                    <div class="h-12 w-px bg-slate-200"></div>
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Support hours</p>
+                        <p class="font-semibold text-slate-900">Daily 9am-9pm</p>
+                    </div>
+                </div>
+            </header>
+
+            <section class="support-card p-8">
+                <div class="flex items-center justify-between gap-4 flex-wrap mb-6">
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">Open a New Ticket</h2>
+                        <p class="text-sm text-slate-500 mt-1">Provide as many details as you can so we can help faster.</p>
+                    </div>
+                </div>
+
+                <form id="supportForm" class="space-y-6">
+                    <div>
+                        <label for="ticketSubject" class="block text-sm font-semibold text-slate-700 mb-2">Subject</label>
+                        <input id="ticketSubject" type="text" required maxlength="255" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" placeholder="e.g. Issue with rental payment">
+                    </div>
+
+                    <div>
+                        <label for="ticketPriority" class="block text-sm font-semibold text-slate-700 mb-2">Priority</label>
+                        <select id="ticketPriority" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent">
+                            <option value="normal">Normal</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="ticketMessage" class="block text-sm font-semibold text-slate-700 mb-2">How can we help?</label>
+                        <textarea id="ticketMessage" rows="6" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent" placeholder="Please describe your issue or question in detail..."></textarea>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <p class="text-xs text-slate-500">We will notify you as soon as an admin responds.</p>
+                        <button id="submitTicketBtn" type="submit" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-teal-500 text-white text-sm font-semibold transition-transform transform hover:-translate-y-0.5 hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            Submit Ticket
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="support-card p-8">
+                <div class="flex items-center justify-between gap-4 flex-wrap mb-6">
+                    <div>
+                        <h2 class="text-xl font-semibold text-slate-900">My Support Tickets</h2>
+                        <p class="text-sm text-slate-500 mt-1">Track the progress and replies from the admin team.</p>
+                    </div>
+                    <button id="refreshTicketsBtn" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i>
+                        Refresh
+                    </button>
+                </div>
+
+                <div id="ticketsEmptyState" class="hidden border border-dashed border-slate-200 rounded-xl p-10 text-center text-slate-500">
+                    <i data-lucide="life-buoy" class="w-12 h-12 mx-auto mb-4 text-slate-400"></i>
+                    <h3 class="text-lg font-semibold text-slate-800 mb-1">No support tickets yet</h3>
+                    <p class="text-sm">Need a hand? Use the form above to open a ticket.</p>
+                </div>
+
+                <div id="ticketsList" class="space-y-4"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/app.js"></script>
+    <script src="/dashboard.js"></script>
+    <script>
+        if (!currentUser) {
+            window.location.href = '/login.html';
+        }
+
+        const supportForm = document.getElementById('supportForm');
+        const submitTicketBtn = document.getElementById('submitTicketBtn');
+        const ticketsList = document.getElementById('ticketsList');
+        const ticketsEmptyState = document.getElementById('ticketsEmptyState');
+        const refreshTicketsBtn = document.getElementById('refreshTicketsBtn');
+
+        if (currentUser) {
+            const name = currentUser.name || 'User';
+            document.getElementById('sidebarUserName').textContent = name;
+            document.getElementById('userRole').textContent = (currentUser.role || 'member').replace(/\b\w/g, c => c.toUpperCase());
+            document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(value) {
+            if (typeof value !== 'string') {
+                return '';
+            }
+            return value
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatMessageContent(value) {
+            return escapeHtml(value || '').replace(/\n/g, '<br>');
+        }
+
+        function getStatusBadge(status) {
+            const normalized = (status || 'open').toLowerCase();
+            const baseClasses = 'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold';
+
+            if (normalized === 'resolved') {
+                return `<span class="${baseClasses} bg-emerald-100 text-emerald-700"><i data-lucide="check-circle" class="w-3 h-3"></i> Resolved</span>`;
+            }
+            if (normalized === 'in_progress') {
+                return `<span class="${baseClasses} bg-amber-100 text-amber-700"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> In progress</span>`;
+            }
+            return `<span class="${baseClasses} bg-slate-200 text-slate-700"><i data-lucide="alert-circle" class="w-3 h-3"></i> Open</span>`;
+        }
+
+        function getPriorityBadge(priority) {
+            const normalized = (priority || 'normal').toLowerCase();
+            const baseClasses = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide';
+
+            if (normalized === 'high') {
+                return `<span class="${baseClasses} bg-rose-100 text-rose-600"><i data-lucide="flame" class="w-3 h-3"></i> High</span>`;
+            }
+            return `<span class="${baseClasses} bg-sky-100 text-sky-600"><i data-lucide="circle" class="w-3 h-3"></i> Normal</span>`;
+        }
+
+        function renderTickets(tickets) {
+            if (!tickets || tickets.length === 0) {
+                ticketsList.innerHTML = '';
+                ticketsEmptyState.classList.remove('hidden');
+                lucide.createIcons();
+                return;
+            }
+
+            ticketsEmptyState.classList.add('hidden');
+
+            ticketsList.innerHTML = tickets.map(ticket => {
+                const statusBadge = getStatusBadge(ticket.status);
+                const priorityBadge = getPriorityBadge(ticket.priority);
+                const created = formatDate(ticket.created_at);
+                const conversationId = `ticket-thread-${ticket.id}`;
+                const formId = `reply-form-${ticket.id}`;
+                const resolved = ticket.status === 'resolved';
+                const guidance = resolved
+                    ? 'This ticket is closed. Open a new ticket if you need more help.'
+                    : 'An admin will follow up here. Feel free to add more details.';
+
+                return `
+                    <article class="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm hover:shadow-md transition-shadow" data-ticket-id="${ticket.id}">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900">${escapeHtml(ticket.subject)}</h3>
+                                <p class="text-xs text-slate-400 mt-1">Ticket #${ticket.id} · Created ${created}</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${priorityBadge}
+                                ${statusBadge}
+                            </div>
+                        </div>
+                        <div id="${conversationId}" class="mt-5 bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 text-sm text-slate-600 max-h-72 overflow-y-auto pr-1">
+                            <p class="text-center text-slate-400 text-sm">Loading conversation...</p>
+                        </div>
+                        <form id="${formId}" data-ticket-id="${ticket.id}" class="mt-5 space-y-3 support-reply-form">
+                            <label class="block text-sm font-semibold text-slate-700">Add a reply</label>
+                            <textarea name="replyMessage" rows="3" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent ${resolved ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : ''}" placeholder="Type your message..." ${resolved ? 'disabled' : ''}></textarea>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <p class="text-xs text-slate-400">${guidance}</p>
+                                <button type="submit" class="reply-submit-btn inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 ${resolved ? 'opacity-50 cursor-not-allowed hover:bg-teal-500' : ''}" ${resolved ? 'disabled' : ''}>
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                    Send Reply
+                                </button>
+                            </div>
+                        </form>
+                    </article>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+
+            tickets.forEach(ticket => {
+                loadTicketMessages(ticket.id);
+                const form = document.getElementById(`reply-form-${ticket.id}`);
+                if (form && !form.querySelector('textarea')?.disabled) {
+                    form.addEventListener('submit', handleTicketReply);
+                }
+            });
+        }
+
+        function renderMessageBubble(message) {
+            const isUser = message.sender_role !== 'admin';
+            const icon = isUser ? 'user' : 'shield';
+            const label = isUser ? 'You' : (message.sender_name || 'Admin');
+            const timestamp = formatDate(message.created_at);
+            const bubbleClasses = isUser
+                ? 'bg-teal-500 text-white'
+                : 'bg-white text-slate-700 border border-slate-200';
+            const metaColor = isUser ? 'text-teal-100/90' : 'text-slate-400';
+
+            return `
+                <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-xl rounded-2xl px-4 py-3 shadow-sm ${bubbleClasses}">
+                        <div class="flex items-center gap-2 text-xs ${metaColor} mb-2">
+                            <i data-lucide="${icon}" class="w-3.5 h-3.5"></i>
+                            <span class="font-semibold">${escapeHtml(label)}</span>
+                            <span>• ${timestamp}</span>
+                        </div>
+                        <p class="leading-relaxed text-sm whitespace-pre-wrap">${formatMessageContent(message.message)}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadTicketMessages(ticketId) {
+            const container = document.getElementById(`ticket-thread-${ticketId}`);
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = '<p class="text-center text-slate-400 text-sm">Loading conversation...</p>';
+
+            try {
+                const response = await api.getSupportTicketMessages(ticketId);
+                const messages = response.data || [];
+                if (messages.length === 0) {
+                    container.innerHTML = '<p class="text-center text-slate-400 text-sm">No messages yet.</p>';
+                } else {
+                    container.innerHTML = messages.map(renderMessageBubble).join('');
+                }
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Failed to load ticket messages:', error);
+                container.innerHTML = '<p class="text-center text-rose-500 text-sm">Failed to load messages.</p>';
+            }
+        }
+
+        async function handleTicketReply(event) {
+            event.preventDefault();
+
+            const form = event.currentTarget;
+            const ticketId = form.getAttribute('data-ticket-id');
+            const textarea = form.querySelector('textarea[name="replyMessage"]');
+            const submitBtn = form.querySelector('.reply-submit-btn');
+            const message = textarea.value.trim();
+
+            if (!message) {
+                Swal.fire('Missing message', 'Please enter a message before sending.', 'warning');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70');
+
+            try {
+                await api.replySupportTicket(ticketId, { message });
+                textarea.value = '';
+                await loadTickets();
+            } catch (error) {
+                console.error('Failed to send reply:', error);
+                Swal.fire('Error', error.message || 'Unable to send reply', 'error');
+            } finally {
+                if (document.body.contains(submitBtn)) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-70');
+                }
+            }
+        }
+
+        async function loadTickets() {
+            try {
+                refreshTicketsBtn.disabled = true;
+                refreshTicketsBtn.classList.add('opacity-60');
+                const response = await api.getSupportTickets();
+                const tickets = response.data || [];
+                renderTickets(tickets);
+            } catch (error) {
+                console.error('Failed to load tickets:', error);
+                Swal.fire('Error', error.message || 'Unable to load support tickets', 'error');
+            } finally {
+                refreshTicketsBtn.disabled = false;
+                refreshTicketsBtn.classList.remove('opacity-60');
+            }
+        }
+
+        async function loadNotifications() {
+            try {
+                const response = await api.request('/notifications/unread/count');
+                const count = response.count || 0;
+                const badge = document.getElementById('notificationBadge');
+
+                if (!badge) {
+                    return;
+                }
+
+                if (count > 0) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        supportForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const subject = document.getElementById('ticketSubject').value.trim();
+            const message = document.getElementById('ticketMessage').value.trim();
+            const priority = document.getElementById('ticketPriority').value;
+
+            if (!subject || !message) {
+                Swal.fire('Missing information', 'Please provide both a subject and a message.', 'warning');
+                return;
+            }
+
+            submitTicketBtn.disabled = true;
+            submitTicketBtn.classList.add('opacity-70');
+
+            try {
+                await api.createSupportTicket({ subject, message, priority });
+                Swal.fire('Ticket submitted', 'Our support team will reach out to you shortly.', 'success');
+                supportForm.reset();
+                await loadTickets();
+            } catch (error) {
+                console.error('Failed to create ticket:', error);
+                Swal.fire('Error', error.message || 'Unable to submit ticket', 'error');
+            } finally {
+                submitTicketBtn.disabled = false;
+                submitTicketBtn.classList.remove('opacity-70');
+            }
+        });
+
+        refreshTicketsBtn.addEventListener('click', loadTickets);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            loadNotifications();
+            await loadTickets();
+        });
+
+        setInterval(loadNotifications, 30000);
+    </script>
+</body>
+</html>

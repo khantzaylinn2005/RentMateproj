@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-5 py-2.5 bg-primary text-white font-medium rounded-lg shadow-lg hover:bg-secondary transition-all duration-300 transform hover:scale-105 text-sm;
+  }
+  
+  .btn-outline {
+    @apply px-5 py-2.5 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-primary transition-all duration-300 text-sm;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-lg p-5 transition-all duration-300 hover:shadow-xl hover:transform hover:scale-105;
+  }
+}

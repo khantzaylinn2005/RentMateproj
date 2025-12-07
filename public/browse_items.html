@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Items - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            padding: 1.5rem 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .sidebar-logo i {
+            width: 32px;
+            height: 32px;
+        }
+
+        .sidebar-logo span {
+            font-size: 1.375rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-nav {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.875rem 0.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-link.lender-feature[data-locked="true"] {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .sidebar-link.lender-feature[data-locked="true"]:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: none;
+        }
+
+        .locked-icon {
+            opacity: 0.7;
+        }
+
+        .sidebar-link.lender-feature[data-locked="false"] .locked-icon {
+            display: none;
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.125rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .sidebar-user-menu a {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-user-menu a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+            height: calc(1.4em * 2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i data-lucide="tent" class="w-8 h-8"></i>
+            <span class="text-xl font-bold">RentMate</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/browse_items.html" class="sidebar-link active" id="nav-browse">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span>Browse Items</span>
+            </a>
+            <a href="/dashboard.html" class="sidebar-link">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/list_new_item.html" class="sidebar-link">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>List New Item</span>
+            </a>
+            <a href="/my_items.html" class="sidebar-link">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span>My Items</span>
+            </a>
+            <a href="/borrowing.html" class="sidebar-link">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span>Borrowing</span>
+            </a>
+            <a href="/lending.html" class="sidebar-link">
+                <i data-lucide="truck" class="w-5 h-5"></i>
+                <span>Lending</span>
+            </a>
+            <a href="/chat.html" class="sidebar-link">
+                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/notification.html" class="sidebar-link" id="notificationsLink">
+                <div style="position: relative;">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="notificationBadge" class="notification-badge" style="display: none;"></span>
+                </div>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="sidebarUserName" class="font-semibold text-sm">User</div>
+                    <div class="text-xs text-white/70" id="userRole">Member</div>
+                </div>
+            </div>
+            <div class="sidebar-user-menu">
+                <a href="/profile.html">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Profile
+                </a>
+                <a href="/support.html">
+                    <i data-lucide="life-buoy" class="w-4 h-4 inline mr-2"></i>
+                    Customer Support
+                </a>
+                <a href="#" onclick="handleLogout()">
+                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container mx-auto px-6 py-6">
+            <!-- Header Section -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900 uppercase tracking-wide">Browse Items</h1>
+                <p class="text-gray-600 text-sm mt-1">Discover available items for rent</p>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="search" class="w-5 h-5 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Search items..." 
+                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                    </div>
+                    <select id="categoryFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                        <option value="">All Categories</option>
+                        <option value="tent">Tent</option>
+                        <option value="sleeping-bag">Sleeping Bag</option>
+                        <option value="backpack">Backpack</option>
+                        <option value="bike">Bike</option>
+                        <option value="camera">Camera</option>
+                        <option value="tools">Tools</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button onclick="applyFilters()" class="px-6 py-2 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors text-sm uppercase tracking-wide">
+                        <i data-lucide="filter" class="w-4 h-4 inline mr-2"></i>
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Items Grid -->
+            <div id="itemsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <!-- Items will be loaded here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+                <i data-lucide="package-x" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">No Items Found</h3>
+                <p class="text-gray-600 text-sm">Try adjusting your search or filters</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        // Check authentication
+        if (!currentUser) {
+            window.location.href = '/login.html';
+        }
+
+        // Update sidebar user info
+        if (currentUser) {
+            document.getElementById('sidebarUserName').textContent = currentUser.name || 'User';
+            document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Admin' : 'Member';
+            document.getElementById('userAvatar').textContent = (currentUser.name || 'U').charAt(0).toUpperCase();
+        }
+
+        let allItems = [];
+
+        // Load all available items
+        async function loadItems() {
+            try {
+                const response = await api.getItems();
+                // Filter out current user's items - show items from other users
+                allItems = (response.data || []).filter(item => item.owner_id !== currentUser.id && item.available);
+                displayItems(allItems);
+            } catch (error) {
+                console.error('Error loading items:', error);
+                Swal.fire('Error', 'Failed to load items', 'error');
+            }
+        }
+
+        function displayItems(items) {
+            const itemsGrid = document.getElementById('itemsGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (!items || items.length === 0) {
+                itemsGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            itemsGrid.innerHTML = items.map(item => {
+                // Parse images JSON string
+                let images = [];
+                try {
+                    images = item.images ? JSON.parse(item.images) : [];
+                } catch (e) {
+                    console.error('Error parsing images for item:', item.id, e);
+                    images = [];
+                }
+                
+                // Handle image placeholder
+                const imageHtml = images && images.length > 0 && images[0] ? 
+                    `<img src="${images[0]}" alt="${item.name}" class="absolute inset-0 w-full h-full object-cover">` :
+                    `<div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
+                        <i data-lucide="package" class="w-20 h-20 text-gray-500"></i>
+                    </div>`;
+                
+                return `
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <!-- Image -->
+                    <div class="relative bg-gray-800 pb-[100%]">
+                        ${imageHtml}
+                        ${!item.available ? '<span class="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded uppercase">Rented</span>' : ''}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 text-sm uppercase tracking-wide mb-2 truncate">${item.name}</h3>
+                        <p class="text-gray-600 text-xs mb-3 line-clamp-2">${item.description || 'No description'}</p>
+                        
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase tracking-wide">Price</div>
+                                <div class="text-lg font-bold text-gray-900">THB ${item.price}</div>
+                            </div>
+                            <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded uppercase">${item.category || 'Other'}</span>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <a href="/item_detail.html?id=${item.id}" 
+                                class="flex-1 px-4 py-2 bg-gray-200 text-gray-900 font-semibold rounded-lg hover:bg-gray-300 transition-colors text-sm uppercase tracking-wide text-center">
+                                View Details
+                            </a>
+                            <button onclick="requestRental(${item.id})" 
+                                class="flex-1 px-4 py-2 bg-black text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors text-sm uppercase tracking-wide">
+                                Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+            
+            lucide.createIcons();
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            
+            let filtered = allItems;
+            
+            if (searchTerm) {
+                filtered = filtered.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) || 
+                    (item.description && item.description.toLowerCase().includes(searchTerm))
+                );
+            }
+            
+            if (category) {
+                filtered = filtered.filter(item => item.category === category);
+            }
+            
+            displayItems(filtered);
+        }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                applyFilters();
+            }
+        });
+
+        async function requestRental(itemId) {
+            const isVerifiedLender = currentUser && (currentUser.is_verified === 1 || currentUser.verification_status === 'verified');
+
+            if (!isVerifiedLender) {
+                await Swal.fire({
+                    icon: 'info',
+                    title: 'Verification Required',
+                    text: 'Please verify your account before requesting an item. We will take you to the verification page now.',
+                    confirmButtonText: 'Go to Verify Page',
+                    confirmButtonColor: '#0d9488'
+                });
+
+                window.location.href = '/verification.html';
+                return;
+            }
+
+            window.location.href = `/request_rental.html?itemId=${itemId}`;
+        }
+
+        // Lock/unlock lender features based on verification
+        function updateLenderFeatures(isVerified) {
+            const lenderFeatures = document.querySelectorAll('.lender-feature');
+            
+            lenderFeatures.forEach(link => {
+                if (isVerified) {
+                    // Unlock features
+                    link.setAttribute('data-locked', 'false');
+                    link.style.opacity = '1';
+                    link.style.cursor = 'pointer';
+                    
+                    // Restore original hrefs
+                    if (link.id === 'nav-additem') {
+                        link.href = '/list_new_item.html';
+                    } else if (link.id === 'nav-myitems') {
+                        link.href = '/my_items.html';
+                    } else if (link.id === 'nav-lending') {
+                        link.href = '/lending.html';
+                    }
+                    
+                    // Remove click handler
+                    link.onclick = null;
+                } else {
+                    // Lock features
+                    link.setAttribute('data-locked', 'true');
+                    link.href = '#';
+                    
+                    // Add click handler to show message
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Verification Required',
+                            text: 'Please verify as a lender to access this feature. Go to Dashboard and click "Verify Account" to get verified.',
+                            confirmButtonColor: '#0d9488'
+                        });
+                    };
+                }
+            });
+            
+            lucide.createIcons();
+        }
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            
+            // Refresh user data to get latest verification status
+            try {
+                const response = await api.getProfile();
+                if (response.success && response.data) {
+                    currentUser = response.data;
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                }
+            } catch (error) {
+                console.error('Error refreshing user data:', error);
+            }
+            
+            // Check user verification status - unlock all features if verified
+            const isVerifiedLender = currentUser && (currentUser.is_verified === 1 || currentUser.verification_status === 'verified');
+            
+            updateLenderFeatures(isVerifiedLender);
+            
+            await loadItems();
+            loadNotifications(); // Load notifications
+        });
+
+        // Load notifications
+        async function loadNotifications() {
+            try {
+                const response = await api.request('/notifications/unread/count');
+                const count = response.count || 0;
+                
+                const badge = document.getElementById('notificationBadge');
+                if (count > 0) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        // Auto-refresh notifications every 30 seconds
+        setInterval(loadNotifications, 30000);
+    </script>
+</body>
+</html>

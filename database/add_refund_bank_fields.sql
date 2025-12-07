@@ -1,0 +1,5 @@
+ALTER TABLE rentals
+    ADD COLUMN IF NOT EXISTS refund_bank_acc_name VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS refund_bank_number VARCHAR(100) NULL,
+    ADD COLUMN IF NOT EXISTS refund_bank_name VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS refund_bank_photo LONGTEXT NULL;

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - RentMate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .btn-primary {
+            padding: 0.625rem 1.25rem;
+            background-color: #0d9488;
+            color: white;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0f766e;
+        }
+        
+        .btn-outline {
+            padding: 0.625rem 1.25rem;
+            background-color: white;
+            color: #0d9488;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            border: 2px solid #0d9488;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-outline:hover {
+            background-color: #0d9488;
+            color: white;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .line-clamp-2 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%);
+            padding: 1.5rem 0;
+            z-index: 100;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .sidebar-logo i {
+            width: 32px;
+            height: 32px;
+        }
+
+        .sidebar-logo span {
+            font-size: 1.375rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-nav {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.875rem 0.5rem;
+            color: rgba(255, 255, 255, 0.85);
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-link.lender-feature[data-locked="true"] {
+            opacity: 0.6;
+            cursor: not-allowed;
+            position: relative;
+        }
+
+        .sidebar-link.lender-feature[data-locked="true"]:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: none;
+        }
+
+        .locked-icon {
+            opacity: 0.7;
+        }
+
+        .sidebar-link.lender-feature[data-locked="false"] .locked-icon {
+            display: none;
+        }
+
+        /* Verify Account Button Styling */
+        #switchToLenderSection {
+            padding: 0 1rem;
+            margin-top: auto;
+            margin-bottom: 1rem;
+        }
+
+        #switchToLenderSection a {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.875rem 1rem;
+            border-radius: 0.625rem;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+            text-decoration: none;
+        }
+
+        #switchToLenderSection a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+
+        #switchToLenderSection p {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .sidebar-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.125rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-user-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .sidebar-user-menu a {
+            color: rgba(255, 255, 255, 0.85);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-user-menu a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateX(2px);
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i data-lucide="tent" class="w-8 h-8"></i>
+            <span class="text-xl font-bold">RentMate</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/browse_items.html" class="sidebar-link" id="nav-browse">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span>Browse Items</span>
+            </a>
+            <a href="/dashboard.html" class="sidebar-link active" id="nav-dashboard">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/list_new_item.html" class="sidebar-link" id="nav-additem">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span>List New Item</span>
+            </a>
+            <a href="/my_items.html" class="sidebar-link" id="nav-myitems">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span>My Items</span>
+            </a>
+            <a href="/borrowing.html" class="sidebar-link" id="nav-borrowing">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span>Borrowing</span>
+            </a>
+            <a href="/lending.html" class="sidebar-link" id="nav-lending">
+                <i data-lucide="truck" class="w-5 h-5"></i>
+                <span>Lending</span>
+            </a>
+            <a href="/chat.html" class="sidebar-link">
+                <i data-lucide="message-circle" class="w-5 h-5"></i>
+                <span>Chat</span>
+            </a>
+            <a href="/notification.html" class="sidebar-link">
+                <div class="relative inline-block">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span id="notificationBadge" class="absolute -top-1 -right-1 hidden bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"></span>
+                </div>
+                <span>Notifications</span>
+            </a>
+        </nav>
+
+        <!-- Verify Account Button -->
+        <div id="switchToLenderSection" class="hidden">
+            <a href="/verification.html">
+                <i data-lucide="shield-check" class="w-4 h-4 inline mr-2"></i>
+                Verify Account
+            </a>
+            <p>Verify to list items</p>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-info">
+                <div class="sidebar-user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div id="sidebarUserName" class="font-semibold text-sm">User</div>
+                    <div class="text-xs text-white/70" id="userRole">Member</div>
+                </div>
+            </div>
+            <div class="sidebar-user-menu">
+                <a href="/profile.html">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Profile
+                </a>
+                <a href="/support.html">
+                    <i data-lucide="life-buoy" class="w-4 h-4 inline mr-2"></i>
+                    Customer Support
+                </a>
+                <a href="#" onclick="handleLogout()">
+                    <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container mx-auto px-6 py-8">
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="section">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard</h1>
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">My Items</p>
+                            <p id="statMyItems" class="text-2xl font-bold text-gray-800">0</p>
+                        </div>
+                        <i data-lucide="package" class="w-10 h-10 text-primary"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Active Borrowing</p>
+                            <p id="statBorrowing" class="text-2xl font-bold text-gray-800">0</p>
+                        </div>
+                        <i data-lucide="shopping-bag" class="w-10 h-10 text-blue-500"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Active Lending</p>
+                            <p id="statLending" class="text-2xl font-bold text-gray-800">0</p>
+                        </div>
+                        <i data-lucide="truck" class="w-10 h-10 text-green-500"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">My Rating</p>
+                            <p id="statRating" class="text-2xl font-bold text-gray-800">0.0</p>
+                        </div>
+                        <i data-lucide="star" class="w-10 h-10 text-yellow-500"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white p-6 rounded-lg shadow mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
+                <div class="flex flex-wrap gap-4">
+                    <a href="/list_new_item.html" class="btn-primary">
+                        <i data-lucide="plus-circle" class="w-4 h-4 inline mr-2"></i>
+                        List New Item
+                    </a>
+                    <a href="/index.html" class="btn-outline">
+                        <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                        Browse Items
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
+                <div id="recentActivity" class="space-y-4">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- My Items Section -->
+        <div id="myitemsSection" class="section hidden">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">My Items</h1>
+                <a href="/list_new_item.html" class="btn-primary">
+                    <i data-lucide="plus-circle" class="w-4 h-4 inline mr-2"></i>
+                    Add New Item
+                </a>
+            </div>
+            <div id="myItemsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Items will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Add Item Section -->
+        <div id="additemSection" class="section hidden">
+            <div class="mb-8">
+                <button onclick="showSection('dashboard')" class="text-gray-600 hover:text-primary mb-4 flex items-center">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Back to Dashboard
+                </button>
+                <h1 class="text-3xl font-bold text-gray-800">List New Item</h1>
+                <p class="text-gray-600 mt-2">Fill in the details to list your camping item for rent</p>
+            </div>
+
+            <div class="bg-white p-8 rounded-lg shadow-lg max-w-4xl">
+                <form id="addItemForm" onsubmit="handleAddItem(event)">
+                    <!-- Photo Upload Section -->
+                    <div class="mb-8">
+                        <label class="block text-sm font-medium text-gray-700 mb-4">
+                            Item Photos <span class="text-red-500">*</span>
+                            <span class="text-xs text-gray-500 ml-2">(First photo is required, up to 4 photos total)</span>
+                        </label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <!-- Photo 1 (Required) -->
+                            <div class="relative">
+                                <label for="photo1" class="block cursor-pointer">
+                                    <div id="preview1" class="w-full h-40 border-2 border-dashed border-primary rounded-lg flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                                        <i data-lucide="camera" class="w-8 h-8 text-primary mb-2"></i>
+                                        <span class="text-xs text-gray-600 font-medium">Photo 1 *</span>
+                                        <span class="text-xs text-gray-500">Required</span>
+                                    </div>
+                                    <input type="file" id="photo1" name="photo1" accept="image/*" class="hidden" onchange="previewPhoto(1)" required>
+                                </label>
+                            </div>
+                            <!-- Photo 2 (Optional) -->
+                            <div class="relative">
+                                <label for="photo2" class="block cursor-pointer">
+                                    <div id="preview2" class="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                                        <i data-lucide="image" class="w-8 h-8 text-gray-400 mb-2"></i>
+                                        <span class="text-xs text-gray-600 font-medium">Photo 2</span>
+                                        <span class="text-xs text-gray-500">Optional</span>
+                                    </div>
+                                    <input type="file" id="photo2" name="photo2" accept="image/*" class="hidden" onchange="previewPhoto(2)">
+                                </label>
+                            </div>
+                            <!-- Photo 3 (Optional) -->
+                            <div class="relative">
+                                <label for="photo3" class="block cursor-pointer">
+                                    <div id="preview3" class="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                                        <i data-lucide="image" class="w-8 h-8 text-gray-400 mb-2"></i>
+                                        <span class="text-xs text-gray-600 font-medium">Photo 3</span>
+                                        <span class="text-xs text-gray-500">Optional</span>
+                                    </div>
+                                    <input type="file" id="photo3" name="photo3" accept="image/*" class="hidden" onchange="previewPhoto(3)">
+                                </label>
+                            </div>
+                            <!-- Photo 4 (Optional) -->
+                            <div class="relative">
+                                <label for="photo4" class="block cursor-pointer">
+                                    <div id="preview4" class="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:bg-gray-50 transition-colors">
+                                        <i data-lucide="image" class="w-8 h-8 text-gray-400 mb-2"></i>
+                                        <span class="text-xs text-gray-600 font-medium">Photo 4</span>
+                                        <span class="text-xs text-gray-500">Optional</span>
+                                    </div>
+                                    <input type="file" id="photo4" name="photo4" accept="image/*" class="hidden" onchange="previewPhoto(4)">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Item Name <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g., 4-Person Camping Tent" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Category <span class="text-red-500">*</span></label>
+                            <select name="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <option value="">Select a category</option>
+                                <option value="tent">Tent</option>
+                                <option value="sleeping-bag">Sleeping Bag</option>
+                                <option value="backpack">Backpack</option>
+                                <option value="cooking">Cooking Equipment</option>
+                                <option value="lighting">Lighting</option>
+                                <option value="clothing">Clothing</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description <span class="text-red-500">*</span></label>
+                        <textarea name="description" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Describe your item in detail: features, condition, what's included, usage tips, etc." required></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Price per Day (THB) <span class="text-red-500">*</span></label>
+                            <input type="number" name="price" min="1" step="0.01" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="15.00" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Deposit ($) <span class="text-red-500">*</span></label>
+                            <input type="number" name="deposit" min="0" step="0.01" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="50.00" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Condition <span class="text-red-500">*</span></label>
+                            <select name="condition" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <option value="">Select condition</option>
+                                <option value="new">New</option>
+                                <option value="like-new">Like New</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Location <span class="text-red-500">*</span></label>
+                            <input type="text" name="location" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="City, State" required>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex gap-4">
+                        <button type="button" onclick="showSection('dashboard')" class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 btn-primary py-3 text-base">
+                            <i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i>
+                            List Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Borrowing Section -->
+        <div id="borrowingSection" class="section hidden">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">My Borrowing</h1>
+            <div id="borrowingList" class="space-y-4">
+                <!-- Borrowing rentals will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Lending Section -->
+        <div id="lendingSection" class="section hidden">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">My Lending</h1>
+            <div id="lendingList" class="space-y-4">
+                <!-- Lending rentals will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profileSection" class="section hidden">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">My Profile</h1>
+            <div class="bg-white p-8 rounded-lg shadow max-w-2xl">
+                <form id="profileForm" onsubmit="handleUpdateProfile(event)">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                        <input type="text" id="profileName" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="profileEmail" name="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <input type="text" id="profileLocation" name="location" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input type="tel" id="profilePhone" name="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Passport No.</label>
+                        <input type="text" id="profilePassport" name="passportNo" disabled class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                        <div class="flex items-center">
+                            <span id="profileRating" class="text-2xl font-bold text-yellow-500">0.0</span>
+                            <i data-lucide="star" class="w-6 h-6 text-yellow-500 ml-2"></i>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Update Profile</button>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script src="./app.js"></script>
+    <script src="./dashboard.js"></script>
+    <script>
+        // Photo preview function
+        function previewPhoto(photoNumber) {
+            const input = document.getElementById(`photo${photoNumber}`);
+            const preview = document.getElementById(`preview${photoNumber}`);
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <div class="relative w-full h-full">
+                            <img src="${e.target.result}" class="w-full h-full object-cover rounded-lg" alt="Preview ${photoNumber}">
+                            <button type="button" onclick="removePhoto(${photoNumber})" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removePhoto(photoNumber) {
+            const input = document.getElementById(`photo${photoNumber}`);
+            const preview = document.getElementById(`preview${photoNumber}`);
+            
+            input.value = '';
+            
+            const isRequired = photoNumber === 1;
+            const iconName = isRequired ? 'camera' : 'image';
+            const iconColor = isRequired ? 'text-primary' : 'text-gray-400';
+            const borderColor = isRequired ? 'border-primary' : 'border-gray-300';
+            const label = isRequired ? 'Required' : 'Optional';
+            
+            preview.innerHTML = `
+                <i data-lucide="${iconName}" class="w-8 h-8 ${iconColor} mb-2"></i>
+                <span class="text-xs text-gray-600 font-medium">Photo ${photoNumber}${isRequired ? ' *' : ''}</span>
+                <span class="text-xs text-gray-500">${label}</span>
+            `;
+            preview.className = `w-full h-40 border-2 border-dashed ${borderColor} rounded-lg flex flex-col items-center justify-center hover:bg-gray-50 transition-colors`;
+            
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

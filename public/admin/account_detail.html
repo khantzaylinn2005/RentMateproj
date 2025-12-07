@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Account Details - RentMate Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Manrope', sans-serif; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .info-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .detail-row {
+            display: flex;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #64748b;
+            width: 180px;
+            flex-shrink: 0;
+        }
+        
+        .detail-value {
+            color: #1e293b;
+            flex: 1;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-inactive {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-action {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-edit {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-toggle {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4);
+        }
+        
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+        }
+        
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .section-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <a href="/admin/banking.html" class="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        <span class="font-medium">Back to Banking</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="shield" class="w-5 h-5 text-primary"></i>
+                    <span class="font-bold text-xl text-gray-800">RentMate Admin</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-5xl mx-auto px-4 py-8">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-20">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            </div>
+            <p class="text-gray-600 font-medium">Loading account details...</p>
+        </div>
+
+        <!-- Content Area -->
+        <div id="contentArea" class="hidden">
+            <!-- Header Card -->
+            <div class="bg-gradient-to-r from-primary to-secondary rounded-2xl shadow-xl p-8 mb-6 text-white">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-white/20 backdrop-blur-sm p-4 rounded-xl">
+                            <i data-lucide="building-2" class="w-10 h-10"></i>
+                        </div>
+                        <div>
+                            <h1 id="bankName" class="text-3xl font-bold mb-2">-</h1>
+                            <p id="accountType" class="text-white/90 text-lg">-</p>
+                        </div>
+                    </div>
+                    <div id="statusBadge" class="status-badge status-active">
+                        <i data-lucide="check-circle" class="w-4 h-4 mr-1"></i>
+                        <span>Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Main Details Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Account Information -->
+                    <div class="info-card">
+                        <div class="section-header">
+                            <i data-lucide="hash" class="w-6 h-6 text-primary"></i>
+                            <h2>Account Information</h2>
+                        </div>
+                        <div>
+                            <div class="detail-row">
+                                <div class="detail-label">Account Number</div>
+                                <div id="accountNumber" class="detail-value font-mono text-lg font-semibold">-</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Account Holder</div>
+                                <div id="accountHolder" class="detail-value">-</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Account Type</div>
+                                <div id="accountTypeDetail" class="detail-value">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branch & International Details -->
+                    <div class="info-card">
+                        <div class="section-header">
+                            <i data-lucide="map-pin" class="w-6 h-6 text-primary"></i>
+                            <h2>Branch & International Details</h2>
+                        </div>
+                        <div>
+                            <div class="detail-row">
+                                <div class="detail-label">Branch Name</div>
+                                <div id="branchName" class="detail-value">-</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">SWIFT/BIC Code</div>
+                                <div id="swiftCode" class="detail-value font-mono">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purpose & Notes -->
+                    <div class="info-card">
+                        <div class="section-header">
+                            <i data-lucide="file-text" class="w-6 h-6 text-primary"></i>
+                            <h2>Additional Information</h2>
+                        </div>
+                        <div>
+                            <div class="detail-row">
+                                <div class="detail-label">Purpose</div>
+                                <div id="purpose" class="detail-value">-</div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-label">Notes</div>
+                                <div id="notes" class="detail-value">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bank Document -->
+                    <div id="documentSection" class="info-card hidden">
+                        <div class="section-header">
+                            <i data-lucide="image" class="w-6 h-6 text-primary"></i>
+                            <h2>Verification Document</h2>
+                        </div>
+                        <img id="bankDocument" src="" alt="Bank Document" class="w-full rounded-lg border-2 border-gray-200 cursor-pointer hover:border-primary transition-colors" onclick="viewFullImage()">
+                    </div>
+                </div>
+
+                <!-- Sidebar Column -->
+                <div class="space-y-6">
+                    <!-- Quick Actions -->
+                    <div class="info-card">
+                        <div class="section-header">
+                            <i data-lucide="zap" class="w-6 h-6 text-primary"></i>
+                            <h2>Quick Actions</h2>
+                        </div>
+                        <div class="space-y-3">
+                            <button onclick="editAccount()" class="btn-action btn-edit w-full justify-center">
+                                <i data-lucide="edit" class="w-5 h-5"></i>
+                                <span>Edit Account</span>
+                            </button>
+                            <button onclick="toggleStatus()" class="btn-action btn-toggle w-full justify-center" id="toggleBtn">
+                                <i data-lucide="toggle-right" class="w-5 h-5"></i>
+                                <span>Toggle Status</span>
+                            </button>
+                            <button onclick="deleteAccount()" class="btn-action btn-delete w-full justify-center">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                <span>Delete Account</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metadata -->
+                    <div class="info-card">
+                        <div class="section-header">
+                            <i data-lucide="info" class="w-6 h-6 text-primary"></i>
+                            <h2>Metadata</h2>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="text-xs text-gray-500 mb-1">Created At</div>
+                                <div id="createdAt" class="text-sm font-medium text-gray-700">-</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 mb-1">Last Updated</div>
+                                <div id="updatedAt" class="text-sm font-medium text-gray-700">-</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 mb-1">Created By</div>
+                                <div id="createdBy" class="text-sm font-medium text-gray-700">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Info -->
+                    <div class="info-card bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+                        <div class="flex items-start space-x-3">
+                            <i data-lucide="lightbulb" class="w-5 h-5 text-blue-600 mt-1 flex-shrink-0"></i>
+                            <div>
+                                <h3 class="font-semibold text-blue-900 mb-2">Account Status</h3>
+                                <p class="text-sm text-blue-700" id="statusInfo">
+                                    This account is currently active and can receive payments.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../app.js"></script>
+    <script>
+        lucide.createIcons();
+
+        // Check if admin is logged in
+        if (!currentUser || currentUser.role !== 'admin') {
+            window.location.href = '/admin.html';
+        }
+
+        // Get bank ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const bankId = urlParams.get('id');
+        let currentBank = null;
+
+        if (!bankId) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No bank account ID provided'
+            }).then(() => {
+                window.location.href = '/admin/banking.html';
+            });
+        }
+
+        // Load bank data
+        async function loadBankData() {
+            try {
+                const response = await api.getBankingById(bankId);
+                currentBank = response.data;
+
+                // Populate header
+                document.getElementById('bankName').textContent = currentBank.bank_name;
+                document.getElementById('accountType').textContent = currentBank.account_type + ' Account';
+
+                // Status badge
+                const statusBadge = document.getElementById('statusBadge');
+                if (currentBank.is_active) {
+                    statusBadge.className = 'status-badge status-active';
+                    statusBadge.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 mr-1"></i><span>Active</span>';
+                    document.getElementById('statusInfo').textContent = 'This account is currently active and can receive payments.';
+                } else {
+                    statusBadge.className = 'status-badge status-inactive';
+                    statusBadge.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4 mr-1"></i><span>Inactive</span>';
+                    document.getElementById('statusInfo').textContent = 'This account is currently inactive and cannot receive payments.';
+                }
+
+                // Account information
+                document.getElementById('accountNumber').textContent = currentBank.bank_number;
+                document.getElementById('accountHolder').textContent = currentBank.account_holder_name;
+                document.getElementById('accountTypeDetail').textContent = currentBank.account_type;
+
+                // Branch & International
+                document.getElementById('branchName').textContent = currentBank.branch_name || 'Not specified';
+                document.getElementById('swiftCode').textContent = currentBank.swift_code || 'Not specified';
+
+                // Additional info
+                document.getElementById('purpose').textContent = currentBank.purpose || 'Not specified';
+                document.getElementById('notes').textContent = currentBank.notes || 'No notes';
+
+                // Document
+                if (currentBank.photo_scan) {
+                    document.getElementById('documentSection').classList.remove('hidden');
+                    document.getElementById('bankDocument').src = currentBank.photo_scan;
+                }
+
+                // Metadata
+                document.getElementById('createdAt').textContent = new Date(currentBank.created_at).toLocaleString();
+                document.getElementById('updatedAt').textContent = currentBank.updated_at ? new Date(currentBank.updated_at).toLocaleString() : 'Never';
+                document.getElementById('createdBy').textContent = 'Admin #' + (currentBank.created_by || 'Unknown');
+
+                // Show content, hide loading
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('contentArea').classList.remove('hidden');
+                lucide.createIcons();
+
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load bank account details'
+                }).then(() => {
+                    window.location.href = '/admin/banking.html';
+                });
+            }
+        }
+
+        function editAccount() {
+            window.location.href = `/admin/edit_bank_account_form.html?id=${bankId}`;
+        }
+
+        async function toggleStatus() {
+            if (!currentBank) return;
+
+            const newStatus = !currentBank.is_active;
+            const action = newStatus ? 'activate' : 'deactivate';
+
+            try {
+                const result = await Swal.fire({
+                    title: `${newStatus ? 'Activate' : 'Deactivate'} Account?`,
+                    text: `Are you sure you want to ${action} this bank account?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: newStatus ? '#10b981' : '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: `Yes, ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (result.isConfirmed) {
+                    await api.toggleBankingStatus(bankId);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: `Account ${action}d successfully!`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    // Reload data
+                    await loadBankData();
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Failed to update account status'
+                });
+            }
+        }
+
+        async function deleteAccount() {
+            try {
+                const result = await Swal.fire({
+                    title: 'Delete Bank Account?',
+                    text: 'This action cannot be undone!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Yes, Delete',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (result.isConfirmed) {
+                    await api.deleteBanking(bankId);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deleted!',
+                        text: 'Bank account deleted successfully!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    // Redirect to banking page
+                    setTimeout(() => {
+                        window.location.href = '/admin/banking.html';
+                    }, 2000);
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Failed to delete bank account'
+                });
+            }
+        }
+
+        function viewFullImage() {
+            if (currentBank && currentBank.photo_scan) {
+                Swal.fire({
+                    title: 'Bank Verification Document',
+                    html: `
+                        <div class="text-left mb-3 bg-gray-50 p-3 rounded">
+                            <p class="text-sm"><strong>Bank:</strong> ${currentBank.bank_name}</p>
+                            <p class="text-sm"><strong>Account:</strong> ${currentBank.bank_number}</p>
+                        </div>
+                        <img src="${currentBank.photo_scan}" class="w-full rounded-lg" alt="Bank Document">
+                    `,
+                    width: '800px',
+                    showCloseButton: true,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'rounded-2xl'
+                    }
+                });
+            }
+        }
+
+        // Initialize
+        loadBankData();
+    </script>
+</body>
+</html>
